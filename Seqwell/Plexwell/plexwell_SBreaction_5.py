@@ -1,5 +1,5 @@
 #Sample barcoding start and stop reaction setup Protocol 5/9
-#last update: November 11, 2020
+#last update: November 20, 2020
 #Seqwell Workflow
 
 import math
@@ -94,9 +94,11 @@ def run(ctx):
 
         pick_up()
         m20.aspirate(4, coding_buffer_strip[0].bottom(h))
+        m20.touch_tip()
         m20.air_gap(2)
         m20.dispense(6, d.bottom())
         m20.mix(2, 4)
+        m20.touch_tip()
         m20.blow_out()
         m20.air_gap(5)
         m20.drop_tip()
@@ -111,9 +113,11 @@ def run(ctx):
 
             pick_up()
             m20.aspirate(4, coding_buffer_strip[0].bottom(h))
+            m20.touch_tip()
             m20.air_gap(2)
             m20.dispense(6, d.bottom())
             m20.mix(2, 4)
+            m20.touch_tip()
             m20.blow_out()
             m20.air_gap(5)
             m20.drop_tip()
@@ -127,20 +131,44 @@ def run(ctx):
     m20.flow_rate.dispense = 7.6
     m20.flow_rate.blow_out = 7.6
 
+    starting_vol = num_cols*NUM_PLATES*6
+    h = round((starting_vol/200)*x_solution_strip[0]._depth, 2)
+    dh = round(h/(num_cols*NUM_PLATES)*1.5, 2)
+
     for d in tc_samples_m:
+        # calculate height
+        if h - dh >= 0.1:
+            h -= dh
+        else:
+            h = 0.1
+
         pick_up()
-        m20.transfer(6, x_solution_strip[0], d, air_gap=2, mix_after=(2, 4),
-                     new_tip='never')
-        m20.blow_out(d.top(-2))
+        m20.aspirate(6, x_solution_strip[0].bottom(h))
+        m20.touch_tip()
+        m20.air_gap(2)
+        m20.dispense(8, d.bottom())
+        m20.mix(2, 4)
+        m20.touch_tip()
+        m20.blow_out()
         m20.air_gap(5)
         m20.drop_tip()
 
     if NUM_PLATES == 2:
         for d in tc_samples_m2:
+            # calculate height
+            if h - dh >= 0.1:
+                h -= dh
+            else:
+                h = 0.1
+
             pick_up()
-            m20.transfer(6, x_solution_strip[0], d, air_gap=2,
-                         mix_after=(2, 4), new_tip='never')
-            m20.blow_out(d.top(-2))
+            m20.aspirate(6, x_solution_strip[0].bottom(h))
+            m20.touch_tip()
+            m20.air_gap(2)
+            m20.dispense(8, d.bottom())
+            m20.mix(2, 4)
+            m20.touch_tip()
+            m20.blow_out()
             m20.air_gap(5)
             m20.drop_tip()
 

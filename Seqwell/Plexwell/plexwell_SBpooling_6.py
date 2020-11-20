@@ -1,5 +1,5 @@
 #Sample Barcoding Pooling Protocol 6/9
-#last update: October 15, 2020
+#last update: November 20, 2020
 #Seqwell Workflow
 
 import math
@@ -74,10 +74,15 @@ def run(ctx):
         for i, s in enumerate(sample_set):
             if m20.current_volume > 0:
                 m20.dispense(m20.current_volume, s.top())
-            m20.transfer(9, s, strip[0], air_gap=2,
+            m20.transfer(10.5, s, strip[0], air_gap=2,
                          new_tip='never')
-#            if i > 0:
-#                m20.mix(2, 10, strip[0])
+
+    m20.flow_rate.aspirate = 7.6
+    m20.flow_rate.dispense = 7.6
+    m20.flow_rate.blow_out = 7.6
+
+            if i > 0:
+                m20.mix(3, 10, strip[0])
             m20.air_gap(2)
         m20.blow_out()
         m20.drop_tip()
