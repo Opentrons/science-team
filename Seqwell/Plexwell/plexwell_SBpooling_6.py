@@ -12,7 +12,7 @@ metadata = {
     'source': 'Custom Protocol Request',
     'apiLevel': '2.3'
 }
-NUM_PLATES = 4
+NUM_PLATES = 1
 NUM_SAMPLES = 96
 
 
@@ -30,9 +30,9 @@ def run(ctx):
                               'DNA plate ' + str(i+1))
         for i, slot in enumerate(['1', '2', '3', '5'][:NUM_PLATES])
     ]
-    consolidation_tube = ctx.load_labware(
+    consolidation_tubes = ctx.load_labware(
         'opentrons_24_tuberack_eppendorf_1.5ml_safelock_snapcap', '7',
-        'reagents microtuberack').wells()[0]
+        'reagents microtuberack').wells()[:NUM_PLATES]
 
     tipracks20 = [ctx.load_labware('opentrons_96_filtertiprack_20ul', slot)
                   for slot in ['8', '10']]
@@ -68,8 +68,9 @@ def run(ctx):
 
 
     """ 3. SB Pooling (within plate) """
-    for sample_set, strip, magwell_set in zip(
-            barcoded_sample_sets_m, pooling_samples_strips, magwell_sets):
+    for sample_set, strip, magwell_set, consol_tube in zip(
+            barcoded_sample_sets_m, pooling_samples_strips, magwell_sets,
+            consolidation_tubes):
         pick_up()
         for i, s in enumerate(sample_set):
             if m20.current_volume > 0:
@@ -77,21 +78,25 @@ def run(ctx):
             m20.transfer(10.5, s, strip[0], air_gap=2,
                          new_tip='never')
 
-    m20.flow_rate.aspirate = 7.6
-    m20.flow_rate.dispense = 7.6
-    m20.flow_rate.blow_out = 7.6
+        # slow flow rates for mixing
+        m20.flow_rate.aspirate = 4
+        m20.flow_rate.dispense = 4
+        m20.flow_rate.blow_out = 4
 
-            if i > 0:
-                m20.mix(3, 10, strip[0])
-            m20.air_gap(2)
+        if i > 0:
+            m20.mix(3, 10, strip[0])
+        # reset to defaults
+        m20.flow_rate.aspirate = 7.6
+        m20.flow_rate.dispense = 7.6
+        m20.flow_rate.blow_out = 7.6
+        m20.air_gap(2)
         m20.blow_out()
         m20.drop_tip()
 
         vol_per_well = num_cols*9
         p300.consolidate(vol_per_well,
                          [well.bottom(0.5) for well in strip],
-                         consolidation_tube.bottom(5))
+                         consol_tube.bottom())
         # divide into number of necessary magnetic wells
-        if len(magwell_set) > 1:
-            vol_per_mag_well = (num_cols*9*8)/len(magwell_set)
-            p300.transfer(vol_per_mag_well, consolidation_tube, magwell_set[1:], air_gap=2)
+        vol_per_mag_well = (num_cols*9*8)/len(magwell_set)
+        p300.transfer(vol_per_mag_well, consol_tube, magwell_set, air_gap=2)
