@@ -1,5 +1,5 @@
 #Sample barcoding start and stop reaction setup Protocol 5/9
-#last update: November 20, 2020
+#last update: December 2, 2020
 #Seqwell Workflow
 
 import math
@@ -26,8 +26,8 @@ def run(ctx):
 
     tc_plate = ctx.load_labware('biorad_96_wellplate_200ul_pcr', '3')
     tc_plate2 = magdeck.load_labware('biorad_96_wellplate_200ul_pcr')
-    strips = tempdeck.load_labware(
-        'opentrons_96_aluminumblock_generic_pcr_strip_200ul')
+    strips = tempdeck.load_labware('usascientific_200ul_pcrstrip')
+#        'opentrons_96_aluminumblock_generic_pcr_strip_200ul')
     dna_plate = ctx.load_labware(
         'biorad_96_wellplate_200ul_pcr', '1')
     dna_plate2 = ctx.load_labware(
@@ -82,7 +82,7 @@ def run(ctx):
 
     # translate starting vol to starting height
     starting_vol = num_cols*NUM_PLATES*4
-    h = round((starting_vol/200)*coding_buffer_strip[0]._depth, 2)
+    h = round((starting_vol/200)*coding_buffer_strip[0].geometry._depth, 2)
     dh = round(h/(num_cols*NUM_PLATES)*1.5, 2)
 
     for d in tc_samples_m:
@@ -132,7 +132,7 @@ def run(ctx):
     m20.flow_rate.blow_out = 7.6
 
     starting_vol = num_cols*NUM_PLATES*6
-    h = round((starting_vol/200)*x_solution_strip[0]._depth, 2)
+    h = round((starting_vol/200)*x_solution_strip[0].geometry._depth, 2)
     dh = round(h/(num_cols*NUM_PLATES)*1.5, 2)
 
     for d in tc_samples_m:
