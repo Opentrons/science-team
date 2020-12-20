@@ -1,5 +1,5 @@
 #Multiplex PCR set up Protocol 2/9
-#last update: October 15, 2020
+#last update: December 20, 2020
 #Seqwell Workflow
 
 import math
@@ -57,7 +57,7 @@ def run(ctx):
         if not m20.hw_pipette['has_tip']:
             pick_up()
         for plate in [pool1_plate, pool2_plate]:
-            m20.transfer(2.5, dna_sample_plate.columns()[i][0],
+            m20.transfer(5, dna_sample_plate.columns()[i][0],
                          plate.columns()[i][0].bottom(0.5), air_gap=2,
                          new_tip='never')
         m20.drop_tip()
@@ -66,7 +66,7 @@ def run(ctx):
     for mm, plate in zip([pool1_mm, pool2_mm], [pool1_plate, pool2_plate]):
         for i, d in enumerate(plate.rows()[0][:num_cols]):
             pick_up()
-            m20.transfer(22.5, mm[i//6], d.top(), air_gap=2,
+            m20.transfer(20, mm[i//6], d.top(), air_gap=2,
                          new_tip='never')
             m20.mix(5, 10, d)
             m20.air_gap(2)
