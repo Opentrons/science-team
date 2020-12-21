@@ -77,8 +77,8 @@ def run(ctx):
                 'elution plate')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
-   # res2 = ctx.load_labware(
-   #     'nest_12_reservoir_15ml', '3', 'reagent reservoir 2')
+    res2 = ctx.load_labware(
+        'nest_12_reservoir_15ml', '3', 'reagent reservoir 2')
     res1 = ctx.load_labware(
         'nest_12_reservoir_15ml', '2', 'reagent reservoir 1')
     num_cols = math.ceil(num_samples/8)
@@ -272,10 +272,14 @@ resuming.')
                         m300.aspirate(180, source.bottom(0.5))
                         m300.dispense(180, source.bottom(5))
                     latest_chan = chan_ind
+                m300.flow_rate.aspirate = 20
+                m300.flow_rate.dispense = 150
+                m300.flow_rate.blow_out = 300
                 m300.transfer(vol_per_trans, source, well.top(), air_gap=20,
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
+            m300.flow_rate.aspirate = 50
             m300.mix(5, 200, well)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
@@ -374,7 +378,7 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
-        ctx.delay(minutes=5, msg='Incubate to help elution'
+        ctx.delay(minutes=5, msg='Incubate to help elution')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
