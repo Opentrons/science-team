@@ -1,5 +1,5 @@
 #Sample Barcoding Purification Protocol 7/9
-#Last update: October 1, 2020
+#Last update: December 22, 2020
 #Seqwell Workflow
 
 import math
@@ -65,8 +65,8 @@ def run(ctx):
     tris = res1.wells()[2]
 
     """ 4. SB Pool Purification """
-    p300.flow_rate.aspirate = 150
-    p300.flow_rate.dispense = 300
+    p300.flow_rate.aspirate = 10
+    p300.flow_rate.dispense = 10
     p300.flow_rate.blow_out = 150
 
     bead_vol = (850/96*NUM_SAMPLES)/len(magwell_sets[0])
@@ -86,6 +86,10 @@ def run(ctx):
     total_vol = (vol_per_well*8 + bead_vol)/len(magwell_sets[0])
     num_trans = math.ceil(total_vol/180)
     vol_per_trans = total_vol/num_trans
+
+    p300.flow_rate.aspirate = 100
+    p300.flow_rate.dispense = 100
+    p300.flow_rate.blow_out = 150
     for m in mag_samples_multi:
         pick_up()
         for _ in range(num_trans):
