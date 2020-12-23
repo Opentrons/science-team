@@ -1,5 +1,5 @@
 #Sample barcoding start and stop reaction setup Protocol 5/9
-#last update: December 22, 2020
+#last update: December 23, 2020
 #Seqwell Workflow
 
 import math
@@ -27,7 +27,7 @@ def run(ctx):
     tc_plate = ctx.load_labware('biorad_96_wellplate_200ul_pcr', '3')
     tc_plate2 = magdeck.load_labware('biorad_96_wellplate_200ul_pcr')
     strips = tempdeck.load_labware('usascientific_200ul_pcrstrip')
-#    strips = tempdeck.load_labware('opentrons_96_aluminumblock_generic_pcr_strip_200ul')
+    #strips = tempdeck.load_labware('opentrons_96_aluminumblock_generic_pcr_strip_200ul')
     dna_plate = ctx.load_labware(
         'biorad_96_wellplate_200ul_pcr', '1')
     dna_plate2 = ctx.load_labware(
@@ -99,8 +99,8 @@ def run(ctx):
         m20.dispense(6, d.bottom())
         m20.flow_rate.aspirate = 2
         m20.flow_rate.dispense = 2
-        m20.mix(2, 4)
- #       m20.touch_tip()
+        m20.mix(6, 3)
+        m20.touch_tip(v_offset=-3)
         m20.flow_rate.blow_out = 100
         m20.blow_out()
         m20.flow_rate.aspirate = 7.6
@@ -123,8 +123,8 @@ def run(ctx):
             m20.dispense(6, d.bottom())
             m20.flow_rate.aspirate = 2
             m20.flow_rate.dispense = 2
-            m20.mix(2, 4)
-#            m20.touch_tip()
+            m20.mix(6, 3)
+            m20.touch_tip(v_offset=-3)
             m20.flow_rate.blow_out = 100
             m20.blow_out()
             m20.flow_rate.aspirate = 7.6

@@ -87,8 +87,8 @@ def run(ctx):
     num_trans = math.ceil(total_vol/180)
     vol_per_trans = total_vol/num_trans
 
-    p300.flow_rate.aspirate = 100
-    p300.flow_rate.dispense = 100
+    p300.flow_rate.aspirate = 50
+    p300.flow_rate.dispense = 50
     p300.flow_rate.blow_out = 150
     for m in mag_samples_multi:
         pick_up()
@@ -101,6 +101,10 @@ def run(ctx):
             m300.blow_out(waste)
             m300.air_gap(20)
         m300.drop_tip()
+
+    p300.flow_rate.aspirate = 100
+    p300.flow_rate.dispense = 100
+    p300.flow_rate.blow_out = 150
 
     # etoh washes
     etoh_vol_per_magwell = 1600/len(magwell_sets[0])

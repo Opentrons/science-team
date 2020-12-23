@@ -1,5 +1,5 @@
 #Sample Barcoding Pooling Protocol 6/9
-#last update: November 20, 2020
+#last update: December 22, 2020
 #Seqwell Workflow
 
 import math
