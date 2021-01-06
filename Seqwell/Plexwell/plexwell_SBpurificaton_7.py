@@ -1,5 +1,5 @@
 #Sample Barcoding Purification Protocol 7/9
-#Last update: December 22, 2020
+#Last update: January 6, 2021
 #Seqwell Workflow
 
 import math
@@ -65,17 +65,23 @@ def run(ctx):
     tris = res1.wells()[2]
 
     """ 4. SB Pool Purification """
-    p300.flow_rate.aspirate = 10
-    p300.flow_rate.dispense = 10
-    p300.flow_rate.blow_out = 150
 
     bead_vol = (850/96*NUM_SAMPLES)/len(magwell_sets[0])
     for m in mag_samples_multi:
         pick_up()
+        p300.flow_rate.aspirate = 100
+        p300.flow_rate.dispense = 100
+        p300.flow_rate.blow_out = 150
         for _ in range(5):
             m300.aspirate(200, magwise.bottom(2))
             m300.dispense(200, magwise.bottom(15))
+        p300.flow_rate.aspirate = 10
+        p300.flow_rate.dispense = 10
+        p300.flow_rate.blow_out = 150
         m300.transfer(bead_vol, magwise, m, air_gap=20, new_tip='never')
+        p300.flow_rate.aspirate = 100
+        p300.flow_rate.dispense = 100
+        p300.flow_rate.blow_out = 150
         m300.mix(5, 200, m)
         m300.drop_tip()
 
@@ -112,8 +118,9 @@ def run(ctx):
     vol_per_trans = etoh_vol_per_magwell/num_trans
     for _ in range(2):
         for m in mag_samples_multi:
-            pick_up()
+            #pick_up()
             for _ in range(num_trans):
+                pick_up()
                 if m300.current_volume > 0:
                     m300.dispense(p300.current_volume, etoh.top())
                 m300.aspirate(vol_per_trans, etoh)
@@ -123,7 +130,7 @@ def run(ctx):
                               m.bottom().move(Point(x=-3, y=1)))
                 m300.blow_out(m.top())
                 m300.air_gap(20)
-            m300.drop_tip()
+                m300.drop_tip()
 
         for m in mag_samples_multi:
             pick_up()
