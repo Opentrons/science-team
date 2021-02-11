@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":24,"starting_vol":200,"binding_buffer_vol":250,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":true,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":24,"starting_vol":200,"binding_buffer_vol":250,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -111,7 +111,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
     #magdeck.disengage()  # just in case
-    #tempdeck.set_temperature(4)
+    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
