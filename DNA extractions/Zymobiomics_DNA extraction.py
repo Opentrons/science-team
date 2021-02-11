@@ -99,11 +99,11 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:11]
-    elution_solution = res1.wells()[-1]
-    wash1 = res2.wells()[:4]
-    wash2 = res2.wells()[4:8]
-    wash3 = res2.wells()[8:]
+    binding_buffer = res1.wells()[:4]
+    elution_solution = res2.wells()[-1]
+    wash1 = res1.wells()[4:8]
+    wash2 = res1.wells()[8:]
+    wash3 = res2.wells()[:4]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
