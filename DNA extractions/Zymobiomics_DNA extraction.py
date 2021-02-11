@@ -283,7 +283,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes=15, msg='Binding')
+        ctx.delay(minutes=15, msg='Mix for 15 minutes off-deck to bind the beads to the sample')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
