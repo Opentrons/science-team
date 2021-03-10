@@ -1,6 +1,6 @@
 def get_values(*names):
 	import json
-	_all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":560,"binding_buffer_vol":420,"wash1_vol":600,"wash2_vol":600,"wash3_vol":600,"elution_vol":200,"lyse_vol":200,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+	_all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":420,"wash1_vol":600,"wash2_vol":600,"wash3_vol":600,"elution_vol":200,"lyse_vol":200,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
 	return [_all_values[n] for n in names]
 
 
@@ -13,7 +13,7 @@ import threading
 from time import sleep
 
 metadata = {
-	'protocolName': 'Heater/shaker Mag-Bind® Blood & Tissue DNA HDQ 96 Kit',
+	'protocolName': 'BIoshake Heater/shaker Mag-Bind® Blood & Tissue DNA HDQ 96 Kit',
 	'author': 'Opentrons <protocols@opentrons.com>',
 	'apiLevel': '2.4'
 }
