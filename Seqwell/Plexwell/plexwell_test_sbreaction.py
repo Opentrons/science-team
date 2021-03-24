@@ -76,7 +76,7 @@ def run(ctx):
             h = 0.1
 
         pick_up()
-        m20.aspirate(4, coding_buffer_strip[0].bottom(h))
+        m20.aspirate(4, coding_buffer_strip[0].bottom(h)) #,rate = 1/10
         m20.move_to(coding_buffer_strip[0].top(4),speed=withdrawal_speed)
         #m20.touch_tip(v_offset=-3)
         #m20.air_gap(2)
