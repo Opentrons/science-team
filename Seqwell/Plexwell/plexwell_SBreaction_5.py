@@ -22,7 +22,7 @@ def run(ctx):
     # load labware
 
     tempdeck = ctx.load_module('temperature module gen2', '4')
-    magdeck = ctx.load_module('magdeck', '6')
+    magdeck = ctx.load_module('magnetic module gen2', '6')
 
     tc_plate = ctx.load_labware('biorad_96_wellplate_200ul_pcr', '3')
     tc_plate2 = magdeck.load_labware('biorad_96_wellplate_200ul_pcr')
