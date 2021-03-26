@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":220,"wash1_vol":150,"wash2_vol":150,"wash3_vol":150,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":150,"binding_buffer_vol":80,"wash1_vol":150,"wash2_vol":150,"wash3_vol":150,"elution_vol":50,"mix_reps":10,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -77,19 +77,19 @@ def run(ctx):
                 'elution plate')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
-    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
-    res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
+#    res2 = ctx.load_labware(res_type, '2', 'reagent reservoir 2')
+    res1 = ctx.load_labware(res_type, '3', 'reagent reservoir 1')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
-               for slot in ['5', '7', '8', '10', '11']]
+               for slot in ['4', '5', '7', '8', '10', '11']]
     if park_tips:
-        parkingrack = ctx.load_labware(
-            'opentrons_96_tiprack_300ul', '4', 'tiprack for parking')
-        parking_spots = parkingrack.rows()[0][:num_cols]
+        rack = ctx.load_labware(
+            'opentrons_96_tiprack_300ul', '2', 'tiprack for parking')
+        parking_spots = rack.rows()[0][:num_cols]
     else:
-        tips300.insert(0, ctx.load_labware('opentrons_96_tiprack_300ul', '4',
-                                           '200µl filtertiprack'))
+        rack = ctx.load_labware(
+            'opentrons_96_tiprack_300ul', '2', '200µl filtertiprack')
         parking_spots = [None for none in range(12)]
 
     # load P300M pipette
@@ -101,11 +101,14 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:4]
-    elution_solution = res2.wells()[-1]
-    wash1 = res2.wells()[4:8]
-    wash2 = res2.wells()[8:]
-    wash3 = res2.wells()[:4]
+    binding_buffer = [res1.wells()[0]]
+    wash1 = res1.wells()[1:2]
+    wash2 = res1.wells()[5:6]
+    wash3 = res1.wells()[7:8]
+    wash4 = res1.wells()[9:10]
+    dnase1 = [res1.wells()[3]]
+    stopreaction = [res1.wells()[4]]
+    elution_solution = res1.wells()[-1]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
@@ -348,6 +351,64 @@ resuming.')
 
         remove_supernatant(vol, park=park)
 
+    def dnase(vol, source, mix_reps=6, park=True, resuspend=True):
+
+        if resuspend and magdeck.status == 'engaged':
+            magdeck.disengage()
+
+        num_trans = math.ceil(vol/200)
+        vol_per_trans = vol/num_trans
+        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
+            _pick_up(m300)
+            side = 1 if i % 2 == 0 else -1
+            loc = m.bottom(0.5).move(Point(x=side*2))
+            src = source[i//(12//len(source))]
+            for n in range(num_trans):
+                if m300.current_volume > 0:
+                    m300.dispense(m300.current_volume, src.top())
+                m300.transfer(vol_per_trans, src, m.top(), air_gap=20,
+                              new_tip='never')
+                if n < num_trans - 1:  # only air_gap if going back to source
+                    m300.air_gap(20)
+            if resuspend:
+                m300.mix(mix_reps, 30, loc)
+            m300.blow_out(m.top())
+            m300.air_gap(20)
+            if park:
+                m300.drop_tip(spot)
+            else:
+                _drop(m300)
+
+        ctx.delay(minutes=10, msg='Incubating for 10 minutes for DNase 1 treatment.')
+
+    def stop_reaction(vol, source, mix_reps=6, park=True, resuspend=True):
+
+        if resuspend and magdeck.status == 'engaged':
+            magdeck.disengage()
+
+        num_trans = math.ceil(vol/200)
+        vol_per_trans = vol/num_trans
+        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
+            _pick_up(m300)
+            side = 1 if i % 2 == 0 else -1
+            loc = m.bottom(0.5).move(Point(x=side*2))
+            src = source[i//(12//len(source))]
+            for n in range(num_trans):
+                if m300.current_volume > 0:
+                    m300.dispense(m300.current_volume, src.top())
+                m300.transfer(vol_per_trans, src, m.top(), air_gap=20,
+                              new_tip='never')
+                if n < num_trans - 1:  # only air_gap if going back to source
+                    m300.air_gap(20)
+            if resuspend:
+                m300.mix(mix_reps, 50, loc)
+            m300.blow_out(m.top())
+            m300.air_gap(20)
+            if park:
+                m300.drop_tip(spot)
+            else:
+                _drop(m300)
+
     def elute(vol, park=True):
         """
         `elute` will perform elution from the deepwell extraciton plate to the
@@ -402,8 +463,14 @@ resuming.')
     """
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
+    #rnase 1 treatment
+    dnase(50, dnase1, park=park_tips)
+    stop_reaction(100, stopreaction, park=park_tips)
+    #resume washes
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
+    wash(150, wash4, park=park_tips)
+    ctx.delay(minutes=2, msg='Dry beads for 2 minutes')
     elute(elution_vol, park=park_tips)
 
     # track final used tip
