@@ -105,11 +105,10 @@ def run(ctx):
     elution_solution = res2.wells()[-1]
     wash1 = res1.wells()[4:8]
     wash2 = res1.wells()[8:]
-    dnase1 = res2.wells()[0]
-    stopsolution = res2.wells()[1]
+    dnase1 = [res2.wells()[0]]
+    stopsolution = [res2.wells()[1]]
     wash3 = res2.wells()[2:3]
     wash4 = res2.wells()[4:7]
-
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
@@ -410,7 +409,7 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
-    
+
     def elute(vol, park=True):
         """
         `elute` will perform elution from the deepwell extraciton plate to the

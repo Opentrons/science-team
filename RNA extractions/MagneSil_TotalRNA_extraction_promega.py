@@ -12,7 +12,7 @@ import threading
 from time import sleep
 
 metadata = {
-    'protocolName': 'COVID-19 Station B RNA Extraction',
+    'protocolName': 'MagneSil Total RNA Promega',
     'author': 'Opentrons <protocols@opentrons.com>',
     'apiLevel': '2.4'
 }
