@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":96,"starting_vol":435,"binding_buffer_vol":565,"wash1_vol":450,"wash2_vol":450,"wash3_vol":450,"elution_vol":60,"mix_reps":10,"settling_time":1,"park_tips":true,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -12,8 +12,8 @@ import threading
 from time import sleep
 
 metadata = {
-    'protocolName': 'MagaZorb® DNA Mini-Prep Kit',
-    'author': 'Opentrons <protocols@opentrons.com>',
+    'protocolName': 'Promega Maxwell HT Viral TNA Kit',
+    'author': 'Nick Diehl',
     'apiLevel': '2.4'
 }
 
@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 13.6
+MAG_HEIGHT = 6.8
 
 
 # Definitions for deck light flashing
@@ -56,39 +56,46 @@ def run(ctx):
     # Setup for flashing lights notification to empty trash
     cancellationToken = CancellationToken()
 
-    [num_samples, deepwell_type, res_type, starting_vol, binding_buffer_vol,
-     wash1_vol, wash2_vol, wash3_vol, elution_vol, mix_reps, settling_time,
+    [num_samples, starting_vol, binding_buffer_vol, wash1_vol, wash2_vol,
+     wash3_vol, elution_vol, mix_reps, settling_time,
      park_tips, tip_track, flash] = get_values(  # noqa: F821
-        'num_samples', 'deepwell_type', 'res_type', 'starting_vol',
-        'binding_buffer_vol', 'wash1_vol', 'wash2_vol', 'wash3_vol',
-        'elution_vol', 'mix_reps', 'settling_time', 'park_tips', 'tip_track',
-        'flash')
+        'num_samples', 'starting_vol', 'binding_buffer_vol', 'wash1_vol',
+        'wash2_vol', 'wash3_vol', 'elution_vol', 'mix_reps', 'settling_time',
+        'park_tips', 'tip_track', 'flash')
+
+    num_samples = 8
 
     """
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magdeck', '6')
+    magdeck = ctx.load_module('magnetic module Gen2', '6')
     magdeck.disengage()
-    magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
+    magplate = magdeck.load_labware('nest_96_wellplate_2ml_deep',
+                                    'deepwell plate')
+    # magplate = magdeck.load_labware('biorad_96_wellplate_200ul_pcr')
     tempdeck = ctx.load_module('Temperature Module Gen2', '1')
     elutionplate = tempdeck.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
                 'elution plate')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
-    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
-    res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
+    res2 = ctx.load_labware(
+        'nest_12_reservoir_15ml', '2', 'reagent reservoir 2')
+    res1 = ctx.load_labware(
+        'nest_12_reservoir_15ml', '3', 'reagent reservoir 1')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
-               for slot in ['5', '7', '8', '10', '11']]
+               for slot in ['4', '7', '8', '10', '11']]
+
     if park_tips:
         parkingrack = ctx.load_labware(
-            'opentrons_96_tiprack_300ul', '4', 'tiprack for parking')
-        parking_spots = parkingrack.rows()[0][:num_cols]
+            'opentrons_96_tiprack_300ul', '5', 'empty tiprack for parking')
+        all_spots = [well for rack in [parkingrack] + tips300 for well in rack.rows()[0]]
+        parking_spot_sets = [all_spots[i*num_cols:i*num_cols+num_cols] for i in range(5)]
     else:
-        tips300.insert(0, ctx.load_labware('opentrons_96_tiprack_300ul', '4',
+        tips300.insert(0, ctx.load_labware('opentrons_96_tiprack_300ul', '5',
                                            '200µl filtertiprack'))
         parking_spots = [None for none in range(12)]
 
@@ -99,18 +106,19 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:4]
+    binding_buffer = res1.wells()[:6]
     elution_solution = res2.wells()[-1]
-    wash1 = res1.wells()[4:10]
-    wash2 = res2.wells()[:6]
+    wash1 = res1.wells()[6:]
+    wash2 = res2.wells()[:4]
+    wash3 = res2.wells()[4:8]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
-#    magdeck.disengage()  # just in case
-#    tempdeck.set_temperature(4)
+    magdeck.disengage()  # just in case
+    tempdeck.set_temperature(4)
 
-    m300.flow_rate.aspirate = 50
+    m300.flow_rate.aspirate = 300
     m300.flow_rate.dispense = 150
     m300.flow_rate.blow_out = 300
 
@@ -150,7 +158,7 @@ resuming.')
     switch = True
     drop_count = 0
     # number of tips trash will accommodate before prompting user to empty
-    drop_threshold = 120
+    drop_threshold = 240
 
     def _drop(pip):
         nonlocal switch
@@ -160,11 +168,8 @@ resuming.')
             Point(x=side))
         pip.drop_tip(drop_loc)
         switch = not switch
-        if pip.type == 'multi':
-            drop_count += 8
-        else:
-            drop_count += 1
-        if drop_count >= drop_threshold:
+        drop_count += 8
+        if drop_count == drop_threshold:
             # Setup for flashing lights notification to empty trash
             if flash:
                 if not ctx._hw_manager.hardware.is_simulator:
@@ -172,18 +177,20 @@ resuming.')
                 thread = create_thread(ctx, cancellationToken)
             m300.home()
             ctx.pause('Please empty tips from waste before resuming.')
+
             ctx.home()  # home before continuing with protocol
             if flash:
                 cancellationToken.set_false()  # stop light flashing after home
                 thread.join()
+
             drop_count = 0
 
     waste_vol = 0
     waste_threshold = 185000
 
-    def remove_supernatant(vol, park=False):
+    def remove_supernatant(vol, set_ind, park=False):
         """
-        `remove_supernatant` will transfer supernatant from the deepwell
+        `remove_supernatant` willf transfer supernatant from the deepwell
         extraction plate to the liquid waste reservoir.
         :param vol (float): The amount of volume to aspirate from all deepwell
                             sample wells and dispense in the liquid waste.
@@ -212,10 +219,10 @@ resuming.')
                 waste_vol = 0
             waste_vol += vol
 
-        m300.flow_rate.aspirate = 30
+        m300.flow_rate.aspirate = 400
         num_trans = math.ceil(vol/200)
         vol_per_trans = vol/num_trans
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
+        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spot_sets[set_ind])):
             if park:
                 _pick_up(m300, spot)
             else:
@@ -235,7 +242,7 @@ resuming.')
             _drop(m300)
         m300.flow_rate.aspirate = 150
 
-    def bind(vol, park=True):
+    def bind(vol, set_ind=0, park=True):
         """
         `bind` will perform magnetic bead binding on each sample in the
         deepwell plate. Each channel of binding beads will be mixed before
@@ -251,45 +258,46 @@ resuming.')
                                plate.
         """
         latest_chan = -1
-        for i, (well, spot) in enumerate(zip(mag_samples_m, parking_spots)):
-            if park:
-                _pick_up(m300, spot)
-            else:
-                _pick_up(m300)
+        for i, (well, spot) in enumerate(zip(mag_samples_m, parking_spot_sets[set_ind])):
+            _pick_up(m300)
             num_trans = math.ceil(vol/200)
             vol_per_trans = vol/num_trans
-            asp_per_chan = (0.95*res1.wells()[0].max_volume)//(vol_per_trans*8)
+            asp_per_chan = 10000//(vol_per_trans*8)
             for t in range(num_trans):
                 chan_ind = int((i*num_trans + t)//asp_per_chan)
                 source = binding_buffer[chan_ind]
                 if m300.current_volume > 0:
                     # void air gap if necessary
                     m300.dispense(m300.current_volume, source.top())
-                if chan_ind > latest_chan:  # mix if accessing new channel
-                    for _ in range(5):
+                # if chan_ind > latest_chan:  # mix if accessing new channel
+                if t == 0:
+                    for _ in range(4):
                         m300.aspirate(180, source.bottom(0.5))
                         m300.dispense(180, source.bottom(5))
-                    latest_chan = chan_ind
+                    # latest_chan = i
                 m300.transfer(vol_per_trans, source, well.top(), air_gap=20,
                               new_tip='never')
-                if t < num_trans - 1:
-                    m300.air_gap(20)
-            m300.mix(5, 200, well)
-            m300.blow_out(well.top(-2))
-            m300.air_gap(20)
+#                if t < num_trans - 1:
+#                    m300.air_gap(20)
+#            m300.mix(5, 200, well)
+#            m300.blow_out(well.top(-2))
+#            m300.air_gap(20)
             if park:
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
+
+        ctx.comment('shake off deck for 15 minutes')
+        ctx.delay(minutes=15)
 
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
 
         # remove initial supernatant
-        remove_supernatant(vol+starting_vol, park=park)
+        remove_supernatant(vol+starting_vol, set_ind=0, park=park)
 
-    def wash(vol, source, mix_reps=15, park=True, resuspend=True):
+    def wash(vol, source, set_ind, mix_reps=15, removal_pct=1, park=True, resuspend=True):
         """
         `wash` will perform bead washing for the extraction protocol.
         :param vol (float): The amount of volume to aspirate from each
@@ -313,7 +321,7 @@ resuming.')
 
         num_trans = math.ceil(vol/200)
         vol_per_trans = vol/num_trans
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
+        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spot_sets[set_ind])):
             _pick_up(m300)
             side = 1 if i % 2 == 0 else -1
             loc = m.bottom(0.5).move(Point(x=side*2))
@@ -340,9 +348,9 @@ resuming.')
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
 
-        remove_supernatant(vol, park=park)
+        remove_supernatant(vol*removal_pct, set_ind=set_ind, park=park)
 
-    def elute(vol, park=True):
+    def elute(vol, set_ind=4, park=True):
         """
         `elute` will perform elution from the deepwell extraciton plate to the
         final clean elutions PCR plate to complete the extraction protocol.
@@ -358,7 +366,7 @@ resuming.')
         # resuspend beads in elution
         if magdeck.status == 'enagaged':
             magdeck.disengage()
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
+        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spot_sets[set_ind])):
             _pick_up(m300)
             side = 1 if i % 2 == 0 else -1
             loc = m.bottom(0.5).move(Point(x=side*2))
@@ -372,14 +380,28 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
+        ctx.delay(minutes=2, msg='incubating for 2 minutes')
+        # agitate after resuspension
+        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spot_sets[set_ind])):
+            if park:
+                _pick_up(m300, spot)
+            else:
+                _pick_up(m300)
+            side = 1 if i % 2 == 0 else -1
+            loc = m.bottom(0.5).move(Point(x=side*2))
+            m300.mix(10, 0.8*vol, loc)
+            m300.blow_out(m.bottom(5))
+            m300.air_gap(20)
+            if park:
+                m300.drop_tip(spot)
+            else:
+                _drop(m300)
 
-        ctx.delay(minutes=2, msg='Incubating for elution for 2 minutes')
         magdeck.engage(height=MAG_HEIGHT)
-        ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
-' + str(settling_time) + ' minutes.')
+        ctx.delay(minutes=5)
 
         for i, (m, e, spot) in enumerate(
-                zip(mag_samples_m, elution_samples_m, parking_spots)):
+                zip(mag_samples_m, elution_samples_m, parking_spot_sets[set_ind])):
             if park:
                 _pick_up(m300, spot)
             else:
@@ -395,12 +417,15 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-#    ctx.delay(minutes=10, msg='Incubate at 56C for 10 minutes on an off-deck heater/shaker')
-    bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips)
-    wash(wash2_vol, wash2, park=park_tips)
-    ctx.delay(minutes=1, msg='Incubate for 1 minutes to dry beads')
-    elute(elution_vol, park=park_tips)
+    bind(binding_buffer_vol, set_ind=0, park=park_tips)
+    wash(wash1_vol, wash1, set_ind=1, removal_pct=.90, park=park_tips)
+    wash(wash2_vol, wash2, set_ind=2, removal_pct=.90, park=park_tips)
+    wash(wash3_vol, wash3, set_ind=3,
+         removal_pct=(wash1_vol*0.1+wash2_vol*0.1+wash3_vol)/wash3_vol,
+         park=park_tips)
+    ctx.delay(minutes=1, msg='drying beads')
+
+    elute(elution_vol, set_ind=4, park=park_tips)
 
     # track final used tip
     if tip_track and not ctx.is_simulating():

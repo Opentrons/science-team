@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":560,"binding_buffer_vol":420,"wash1_vol":600,"wash2_vol":600,"wash3_vol":600,"elution_vol":200,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":560,"binding_buffer_vol":370,"wash1_vol":600,"wash2_vol":600,"wash3_vol":600,"elution_vol":200,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 6.8
+MAG_HEIGHT = 13.6
 
 
 # Definitions for deck light flashing
@@ -68,7 +68,7 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magnetic module gen2', '6')
+    magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
     tempdeck = ctx.load_module('Temperature Module Gen2', '1')
@@ -109,7 +109,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -389,7 +389,7 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
-
+        ctx.delay(minutes=5, msg='Delay for 5 minutes for elution')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -411,12 +411,12 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-    ctx.delay(minutes=10, msg='Heat off-deck at 70C for 10 minutes for lysing')
+#    ctx.delay(minutes=10, msg='Heat off-deck at 70C for 10 minutes for lysing')
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
-    ctx.delay(minutes=5, msg='Incubate for 5 minutes to dry beads')
+    ctx.delay(minutes=2, msg='Incubate for 5 minutes to dry beads')
     elute(elution_vol, park=park_tips)
 
     # track final used tip
