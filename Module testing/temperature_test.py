@@ -10,9 +10,9 @@ def run(ctx):
 	tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
                for slot in ['4','7', '8', '10', '11']]
-               
+
 	# load P300M pipette
-#	m300 = ctx.load_instrument(#
+#	m300 = ctx.load_instrument(
 #		'p300_multi_gen2', 'left', tip_racks=tips300)
 
 	tempdeck.set_temperature(55)
