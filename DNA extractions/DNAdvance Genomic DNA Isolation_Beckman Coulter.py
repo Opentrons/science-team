@@ -91,7 +91,6 @@ def run(ctx):
         tips300.insert(0, ctx.load_labware('opentrons_96_tiprack_300ul', '4',
                                            '200µl filtertiprack'))
         parking_spots = [None for none in range(12)]
-    tips300.insert(0, rack)
 
     # load P300M pipette
     m300 = ctx.load_instrument(

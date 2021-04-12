@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":1125,"wash1_vol":500,"wash2_vol":900,"wash3_vol":900,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":1125,"wash1_vol":500,"wash2_vol":900,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -99,11 +99,11 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:4]
+    binding_buffer = res1.wells()[:8]
     elution_solution = res2.wells()[-1]
-    wash1 = res1.wells()[4:8]
-    wash2 = res1.wells()[8:]
-    wash3 = res2.wells()[:4]
+    wash1 = res1.wells()[8:]
+    wash2 = res2.wells()[:6]
+    wash3 = res2.wells()[6:10]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]

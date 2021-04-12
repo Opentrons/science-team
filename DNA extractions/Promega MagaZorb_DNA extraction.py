@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -373,7 +373,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes=2, msg='Incubating for elution for 2 minutes')
+        ctx.delay(minutes=5, msg='Incubating for elution for 5 minutes')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
