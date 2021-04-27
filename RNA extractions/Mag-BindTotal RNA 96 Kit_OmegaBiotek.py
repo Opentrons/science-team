@@ -22,6 +22,7 @@ metadata = {
 Here is where you can modify the magnetic module engage height:
 """
 MAG_HEIGHT = 13.6
+#MAG_HEIGHT = 6.8
 
 
 # Definitions for deck light flashing
