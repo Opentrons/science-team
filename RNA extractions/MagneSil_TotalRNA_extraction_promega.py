@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":130,"binding_buffer_vol":100,"wash1_vol":100,"wash2_vol":100,"wash3_vol":100,"elution_vol":50,"mix_reps":10,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":100,"wash1_vol":100,"wash2_vol":100,"wash3_vol":100,"elution_vol":50,"mix_reps":10,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 6.8
+MAG_HEIGHT = 13.6
 
 
 # Definitions for deck light flashing
@@ -68,13 +68,13 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magnetic module gen2', '6')
+    magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
 #    res2 = ctx.load_labware(res_type, '2', 'reagent reservoir 2')
@@ -115,7 +115,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -410,6 +410,8 @@ resuming.')
             else:
                 _drop(m300)    
 
+        ctx.delay(minutes=5, msg='Incubating for 5 minutes for stop reaction.')
+
     def elute(vol, park=True):
         """
         `elute` will perform elution from the deepwell extraciton plate to the
@@ -434,22 +436,6 @@ resuming.')
             m300.move_to(m.center())
             m300.dispense(vol, loc)
             m300.mix(mix_reps, 0.8*vol, loc)
-            m300.blow_out(m.bottom(5))
-            m300.air_gap(20)
-            if park:
-                m300.drop_tip(spot)
-            else:
-                _drop(m300)
-
-        # agitate after resuspension
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
-            if park:
-                _pick_up(m300, spot)
-            else:
-                _pick_up(m300)
-            side = 1 if i % 2 == 0 else -1
-            loc = m.bottom(0.5).move(Point(x=side*2))
-            m300.mix(10, 0.8*vol, loc)
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:

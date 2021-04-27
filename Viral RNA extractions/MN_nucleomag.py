@@ -112,7 +112,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
     radius = mag_samples_m[0].width
 
-    magdeck.disengage()  # just in case
+#    magdeck.disengage()  # just in case
     tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50

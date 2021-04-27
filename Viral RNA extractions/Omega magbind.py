@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 13.7
+MAG_HEIGHT = 6.8
 
 
 # Definitions for deck light flashing
@@ -67,7 +67,7 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magdeck', '3')
+    magdeck = ctx.load_module('magnetic module GEN2', '3')
     magdeck.disengage()
     magplate = magdeck.load_labware('nest_96_wellplate_2ml_deep',
                                     'deepwell plate')
@@ -110,8 +110,8 @@ def run(ctx):
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
-    magdeck.disengage()  # just in case
- #   tempdeck.set_temperature(4)
+ #   magdeck.disengage()  # just in case
+    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -401,7 +401,7 @@ resuming.')
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
-    ctx.delay(minutes=5, msg='Beads drying for 5 minutes')
+    ctx.delay(minutes=1, msg='Beads drying for 1 minutes')
     elute(elution_vol, park=park_tips)
 
     # track final used tip

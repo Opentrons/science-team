@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":1125,"wash1_vol":500,"wash2_vol":900,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":600,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -68,13 +68,13 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magnetic module gen2', '6')
+    magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
@@ -109,7 +109,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -396,13 +396,13 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-    ctx.delay(minutes=5, msg='Mix at max speed in a heater/shaker for lysing')
-    ctx.pause('transfer 200uL of samples into a new deep well plate to continue extraction')
+ #   ctx.delay(minutes=5, msg='Mix at max speed in a heater/shaker for lysing')
+  #  ctx.pause('transfer 200uL of samples into a new deep well plate to continue extraction')
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
-    ctx.delay(minutes=20, msg='Dry beads for 20 minutes')
+    ctx.delay(minutes=1, msg='Dry beads for 1 minutes')
     elute(elution_vol, park=park_tips)
 
     # track final used tip

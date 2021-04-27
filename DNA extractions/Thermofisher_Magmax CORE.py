@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":650,"binding_buffer_vol":350,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":90,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":650,"binding_buffer_vol":350,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":90,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 6.8
+MAG_HEIGHT = 13.6
 
 
 # Definitions for deck light flashing
@@ -68,13 +68,13 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magnetic module gen2', '6')
+    magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
@@ -109,7 +109,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -266,10 +266,10 @@ resuming.')
                 if m300.current_volume > 0:
                     # void air gap if necessary
                     m300.dispense(m300.current_volume, source.top())
-                if chan_ind > latest_chan:  # mix if accessing new channel
-                    for _ in range(5):
-                        m300.aspirate(180, source.bottom(0.5))
-                        m300.dispense(180, source.bottom(5))
+#                if chan_ind > latest_chan:  # mix if accessing new channel
+#                    for _ in range(5):
+#                        m300.aspirate(180, source.bottom(0.5))
+#                        m300.dispense(180, source.bottom(5))
                     latest_chan = chan_ind
                 m300.transfer(vol_per_trans, source, well.top(), air_gap=20,
                               new_tip='never')
@@ -411,12 +411,12 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-    ctx.delay(minutes=5, msg='Shake off-deck at moderate speed for 5 minutes for lysing')
+#    ctx.delay(minutes=5, msg='Shake off-deck at moderate speed for 5 minutes for lysing')
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
-    wash(wash3_vol, wash3, park=park_tips)
-    ctx.delay(minutes=5, msg='Dry beads for 5 minutes')
+#    wash(wash3_vol, wash3, park=park_tips)
+    ctx.delay(minutes=1, msg='Dry beads for 1 minutes')
     elute(elution_vol, park=park_tips)
 
     # track final used tip

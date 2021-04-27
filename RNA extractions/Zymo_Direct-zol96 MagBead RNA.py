@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":800,"binding_buffer_vol":800,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":800,"binding_buffer_vol":320,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -12,7 +12,7 @@ import threading
 from time import sleep
 
 metadata = {
-    'protocolName': 'COVID-19 Station B RNA Extraction',
+    'protocolName': 'Zymo Direct-zol96 Magbead RNA',
     'author': 'Opentrons <protocols@opentrons.com>',
     'apiLevel': '2.4'
 }
@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 6.8
+MAG_HEIGHT = 13.6
 
 
 # Definitions for deck light flashing
@@ -68,13 +68,13 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magnetic module gen2', '6')
+    magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
@@ -103,11 +103,11 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:6]
-    wash1 = res1.wells()[6:10]
-    wash2 = res2.wells()[:4]
-    dnase1 = [res2.wells()[5]]
-    stopreaction = [res2.wells()[6]]
+    binding_buffer = res1.wells()[:4]
+    wash1 = res1.wells()[4:8]
+    wash2 = res1.wells()[8:]
+    dnase1 = [res2.wells()[0]]
+    stopreaction = res2.wells()[1:5]
     wash3 = [ethanolres.wells()[0]]
     elution_solution = res2.wells()[-1]
 
@@ -115,7 +115,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -410,6 +410,8 @@ resuming.')
             else:
                 _drop(m300)   
 
+            ctx.delay(minutes=10, msg='Incubating for 10 minutes for Stop reaction.')
+
     def elute(vol, park=True):
         """
         `elute` will perform elution from the deepwell extraciton plate to the
@@ -478,8 +480,8 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-    bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips)
+#    bind(binding_buffer_vol, park=park_tips)
+#    wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
     wash(500, wash3, park=park_tips)
@@ -488,7 +490,7 @@ resuming.')
     stop_reaction(100, stopreaction, park=park_tips)
     #resume washes
     wash(500, wash3, park=park_tips)
-    ctx.delay(minutes=10)
+    ctx.delay(minutes=1, msg='delay for 1 minute for bead drying time')
     elute(elution_vol, park=park_tips)
 
     # track final used tip

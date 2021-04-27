@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":5,"park_tips":true,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -94,7 +94,7 @@ def run(ctx):
 
     # load P300M pipette
     m300 = ctx.load_instrument(
-        'p300_multi_gen2', 'left', tip_racks=tips300)
+        'p300_multi_gen2', 'right', tip_racks=tips300)
 
     """
     Here is where you can define the locations of your reagents.
@@ -393,14 +393,14 @@ resuming.')
 
     """
     Here is where you can call the methods defined above to fit your specific
-    protocol. The normal sequence is:
-    """
+    protoco    """
 #    ctx.delay(minutes=10, msg='Incubate at 56C for 10 minutes on an off-deck heater/shaker')
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     ctx.delay(minutes=1, msg='Incubate for 1 minutes to dry beads')
     elute(elution_vol, park=park_tips)
+
 
     # track final used tip
     if tip_track and not ctx.is_simulating():
