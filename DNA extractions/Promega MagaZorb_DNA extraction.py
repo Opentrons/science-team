@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":5,"park_tips":true,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":400,"wash2_vol":400,"wash3_vol":600,"elution_vol":100,"mix_reps":15,"settling_time":10,"park_tips":true,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -71,10 +71,10 @@ def run(ctx):
     magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
@@ -212,7 +212,7 @@ resuming.')
                 waste_vol = 0
             waste_vol += vol
 
-        m300.flow_rate.aspirate = 30
+        m300.flow_rate.aspirate = 15
         num_trans = math.ceil(vol/200)
         vol_per_trans = vol/num_trans
         for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
