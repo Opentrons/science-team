@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":430,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":400,"binding_buffer_vol":430,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -408,6 +408,14 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
+
+        if magdeck.status == 'disengaged':
+            magdeck.engage(height=MAG_HEIGHT)
+
+        ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
+' + str(settling_time) + ' minutes.')
+
+        remove_supernatant(vol, park=park)
 
     def elute(vol, park=True):
         """
