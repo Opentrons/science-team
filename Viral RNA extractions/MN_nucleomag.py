@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","mag_height":13.6,"z_offset":1,"radial_offset":0.8,"res_type":"nest_12_reservoir_15ml","starting_vol":414,"binding_buffer_vol":630,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":24,"deepwell_type":"nest_96_wellplate_2ml_deep","mag_height":13.6,"z_offset":1,"radial_offset":0.8,"res_type":"nest_12_reservoir_15ml","starting_vol":230,"binding_buffer_vol":315,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -71,10 +71,10 @@ def run(ctx):
     magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+   # tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
@@ -113,7 +113,7 @@ def run(ctx):
     radius = mag_samples_m[0].width
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+  #  tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
