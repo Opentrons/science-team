@@ -410,6 +410,9 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
+            magdeck.engage(height=MAG_HEIGHT)
+            ctx.delay(minutes = 3)
+            remove_supernatant(vol, park=park)
 
     def elute(vol, park=True):
         """
