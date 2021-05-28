@@ -411,7 +411,7 @@ resuming.')
             else:
                 _drop(m300)
             magdeck.engage(height=MAG_HEIGHT)
-            ctx.delay(minutes = 3)
+            ctx.delay(minutes = 5)
             remove_supernatant(vol, park=park)
 
     def elute(vol, park=True):
@@ -477,12 +477,6 @@ resuming.')
     #dnase1 treatment
     dnase(50, dnase1, park=park_tips)
     stop_reaction(140, stopsolution, park=park_tips)
-    magdeck.engage(height=MAG_HEIGHT)
-    ctx.delay(minutes=5)
-    _pick_up(m300)
-    m300.transfer(290, mag_samples_m[0], waste, new_tip='never')
-    m300.air_gap(20)
-    m300.drop_tip()
     #resume washes
     wash(wash3_vol, wash3, park=park_tips)
     wash(400, wash4, park=park_tips)

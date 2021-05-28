@@ -79,11 +79,11 @@ def run(ctx):
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
     res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
-    ethanolres = ctx.load_labware('nest_1_reservoir_195ml', '5')
+#    ethanolres = ctx.load_labware('nest_1_reservoir_195ml', '5')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
-               for slot in ['7', '8', '10', '11']]
+               for slot in ['5', '7', '8', '10', '11']]
     if park_tips:
         parkingrack = ctx.load_labware(
             'opentrons_96_tiprack_300ul', '4', 'tiprack for parking')
@@ -107,7 +107,7 @@ def run(ctx):
     wash2 = res1.wells()[8:]
     dnase1 = [res2.wells()[0]]
     stopreaction = res2.wells()[1:5]
-    wash3 = [ethanolres.wells()[0]]
+    wash3 = res2.wells()[5:9]
     elution_solution = res2.wells()[-1]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
@@ -379,7 +379,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes=10, msg='Incubating for 10 minutes for DNase 1 treatment.')
+        ctx.delay(minutes=10, msg='Incubating for 10 minutes for DNase 1 treatment with occasional mixing.')
 
     def stop_reaction(vol, source, mix_reps=6, park=True, resuspend=True):
 
@@ -408,6 +408,8 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
+
+        ctx.delay(minutes = 10, msg='Incubating for 10 minutes with occasional mixing for stop reaction')
 
         if magdeck.status == 'disengaged':
             magdeck.engage(height=MAG_HEIGHT)
@@ -478,8 +480,6 @@ resuming.')
     #dnase1 treatment
     dnase(50, dnase1, park=park_tips)
     stop_reaction(500, stopreaction, park=park_tips)
-    #resume washes
-    wash(500, wash3, park=park_tips)
     ctx.delay(minutes=1, msg="dry beads for 1 minute")
     elute(elution_vol, park=park_tips)
 

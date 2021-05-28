@@ -21,7 +21,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 13.7
+MAG_HEIGHT = 6.8
 
 
 # Definitions for deck light flashing
@@ -67,7 +67,7 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magdeck', '6')
+    magdeck = ctx.load_module('Magnetic Module Gen2', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware('nest_96_wellplate_2ml_deep',
                                     'deepwell plate')
