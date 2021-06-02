@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":600,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":600,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -12,7 +12,7 @@ import threading
 from time import sleep
 
 metadata = {
-    'protocolName': 'ZymoBIOMICS™ 96 MagBead DNA Kit',
+    'protocolName': 'ZymoBIOMICS™ 96 MagBead DNA Kit with Off deck Mixing',
     'author': 'Opentrons <protocols@opentrons.com>',
     'apiLevel': '2.4'
 }
@@ -254,7 +254,7 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-            m300.mix(5, 200, well)
+#            m300.mix(5, 200, well)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
             if park:
@@ -298,6 +298,7 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
+        ctx.pause('Resuspend off deck')
 
         if magdeck.status == 'disengaged':
             magdeck.engage(height=MAG_HEIGHT)
@@ -320,14 +321,14 @@ resuming.')
             m300.aspirate(vol, elution_solution)
             m300.move_to(m.center())
             m300.dispense(vol, loc)
-            m300.mix(mix_reps, 0.8*vol, loc)
+#            m300.mix(mix_reps, 0.8*vol, loc)
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
-
+        ctx.pause('Resuspend off deck')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -350,9 +351,9 @@ resuming.')
     protocol. The normal sequence is:
     """
     bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips)
-    wash(wash2_vol, wash2, park=park_tips)
-    wash(wash3_vol, wash3, park=park_tips)
+    wash(wash1_vol, wash1, park=park_tips, resuspend=False)
+    wash(wash2_vol, wash2, park=park_tips, resuspend=False)
+    wash(wash3_vol, wash3, park=park_tips, resuspend=False)
     ctx.delay(minutes=1, msg='Dry beads for 1 minutes')
     elute(elution_vol, park=park_tips)
 
