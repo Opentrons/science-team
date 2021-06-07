@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":100,"binding_buffer_vol":170,"wash1_vol":200,"wash2_vol":200,"wash3_vol":200,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -78,12 +78,12 @@ def run(ctx):
                 '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
-    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
-    res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
+#    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
+    res1 = ctx.load_labware(res_type, '3', 'reagent reservoir 1')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
-               for slot in ['5', '7', '8', '10', '11']]
+               for slot in ['2','5', '7', '8', '10', '11']]
     if park_tips:
         parkingrack = ctx.load_labware(
             'opentrons_96_tiprack_300ul', '4', 'tiprack for parking')
@@ -100,11 +100,11 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:4]
-    elution_solution = res2.wells()[-1]
-    wash1 = res1.wells()[4:8]
-    wash2 = res1.wells()[8:]
-    wash3 = res2.wells()[:4]
+    binding_buffer = res1.wells()[:2]
+    elution_solution = res1.wells()[-1]
+    wash1 = res1.wells()[2:4]
+    wash2 = res1.wells()[4:6]
+    wash3 = res1.wells()[6:8]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
@@ -354,7 +354,7 @@ resuming.')
     wash(wash1_vol, wash1, park=park_tips, resuspend=False)
     wash(wash2_vol, wash2, park=park_tips, resuspend=False)
     wash(wash3_vol, wash3, park=park_tips, resuspend=False)
-    ctx.delay(minutes=1, msg='Dry beads for 1 minutes')
+    ctx.delay(minutes=10, msg='Dry beads for 10 minutes')
     elute(elution_vol, park=park_tips)
 
     # track final used tip
