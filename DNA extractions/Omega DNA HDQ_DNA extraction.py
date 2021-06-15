@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":560,"binding_buffer_vol":370,"wash1_vol":600,"wash2_vol":600,"wash3_vol":600,"elution_vol":200,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":560,"binding_buffer_vol":370,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -416,7 +416,7 @@ resuming.')
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
-    ctx.delay(minutes=2, msg='Incubate for 5 minutes to dry beads')
+    ctx.delay(minutes=2, msg='Incubate for 2 minutes to dry beads')
     elute(elution_vol, park=park_tips)
 
     # track final used tip

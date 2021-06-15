@@ -10,6 +10,7 @@ import os
 import math
 import threading
 from time import sleep
+from opentrons import types
 
 metadata = {
     'protocolName': 'ZymoBIOMICS™ 96 MagBead DNA Kit with Off deck Mixing',
@@ -105,6 +106,14 @@ def run(ctx):
     wash1 = res1.wells()[2:4]
     wash2 = res1.wells()[4:6]
     wash3 = res1.wells()[6:8]
+
+    #Defining Mixing Locations
+
+    center = magplate['A1'].bottom().move(types.Point(x=0,y=0,z=0.1))
+    topright = magplate['A1'].bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+    topleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=3.8,z=0.1))
+    bottomright = magplate['A1'].bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+    bottomleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1))
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
@@ -262,7 +271,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes=15, msg='Mix for 15 minutes off-deck to bind the beads to the sample')
+        ctx.pause('Mix for 15 minutes off-deck to bind the beads to the sample')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -291,7 +300,43 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 150, loc)
+                #m300.mix(mix_reps, 150, loc)
+                m300.flow_rate.dispense = 500
+
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+
+                m300.flow_rate.dispense = 150
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -322,6 +367,42 @@ resuming.')
             m300.move_to(m.center())
             m300.dispense(vol, loc)
 #            m300.mix(mix_reps, 0.8*vol, loc)
+            m300.flow_rate.dispense = 500
+
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+
+            m300.flow_rate.dispense = 150
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:
@@ -351,9 +432,9 @@ resuming.')
     protocol. The normal sequence is:
     """
     bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips, resuspend=False)
-    wash(wash2_vol, wash2, park=park_tips, resuspend=False)
-    wash(wash3_vol, wash3, park=park_tips, resuspend=False)
+    wash(wash1_vol, wash1, park=park_tips, resuspend=True)
+    wash(wash2_vol, wash2, park=park_tips, resuspend=True)
+    wash(wash3_vol, wash3, park=park_tips, resuspend=True)
     ctx.delay(minutes=10, msg='Dry beads for 10 minutes')
     elute(elution_vol, park=park_tips)
 

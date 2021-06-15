@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","mag_height":13.6,"z_offset":1,"radial_offset":0.8,"res_type":"nest_12_reservoir_15ml","starting_vol":400,"binding_buffer_vol":550,"wash1_vol":500,"wash2_vol":900,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","mag_height":13.6,"z_offset":1,"radial_offset":0.8,"res_type":"nest_12_reservoir_15ml","starting_vol":400,"binding_buffer_vol":550,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":2,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -103,11 +103,11 @@ def run(ctx):
     NEED TO TEST THIS WITH LOWER VOLUMES
     """
     binding_buffer = res1.wells()[:4]
-    wash3 = res1.wells()[4:8]
-    wash4 = res1.wells()[8:]
+    wash3 = res2.wells()[:4]
+    wash4 = res2.wells()[4:8]
     elution_solution = res2.wells()[-1]
-    wash1 = res2.wells()[:4] #try at 500uL
-    wash2 = res2.wells()[4:10] #try at 900uL
+    wash1 = res1.wells()[4:8] #try at 500uL
+    wash2 = res1.wells()[8:] #try at 500uL
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]

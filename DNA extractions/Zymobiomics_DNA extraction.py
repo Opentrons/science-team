@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":16,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":600,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":100,"binding_buffer_vol":170,"wash1_vol":200,"wash2_vol":200,"wash3_vol":200,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -10,9 +10,10 @@ import os
 import math
 import threading
 from time import sleep
+from opentrons import types
 
 metadata = {
-    'protocolName': 'ZymoBIOMICS™ 96 MagBead DNA Kit',
+    'protocolName': 'ZymoBIOMICS™ 96 MagBead DNA Kit with Off deck Mixing',
     'author': 'Opentrons <protocols@opentrons.com>',
     'apiLevel': '2.4'
 }
@@ -78,12 +79,12 @@ def run(ctx):
                 '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
-    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
-    res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
+#    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
+    res1 = ctx.load_labware(res_type, '3', 'reagent reservoir 1')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
-               for slot in ['5', '7', '8', '10', '11']]
+               for slot in ['2','5', '7', '8', '10', '11']]
     if park_tips:
         parkingrack = ctx.load_labware(
             'opentrons_96_tiprack_300ul', '4', 'tiprack for parking')
@@ -100,11 +101,19 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:8]
-    elution_solution = res2.wells()[-1]
-    wash1 = res1.wells()[8:]
-    wash2 = res2.wells()[:6]
-    wash3 = res2.wells()[6:10]
+    binding_buffer = res1.wells()[:2]
+    elution_solution = res1.wells()[-1]
+    wash1 = res1.wells()[2:4]
+    wash2 = res1.wells()[4:6]
+    wash3 = res1.wells()[6:8]
+
+    #Defining Mixing Locations
+
+    center = magplate['A1'].bottom().move(types.Point(x=0,y=0,z=0.1))
+    topright = magplate['A1'].bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+    topleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=3.8,z=0.1))
+    bottomright = magplate['A1'].bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+    bottomleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1))
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
@@ -254,7 +263,7 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-            m300.mix(5, 200, well)
+#            m300.mix(5, 200, well)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
             if park:
@@ -262,7 +271,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes=15, msg='Mix for 15 minutes off-deck to bind the beads to the sample')
+        ctx.pause('Mix for 15 minutes off-deck to bind the beads to the sample')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -291,7 +300,43 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 150, loc)
+                #m300.mix(mix_reps, 150, loc)
+                m300.flow_rate.dispense = 500
+
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+
+                m300.flow_rate.dispense = 150
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -320,7 +365,43 @@ resuming.')
             m300.aspirate(vol, elution_solution)
             m300.move_to(m.center())
             m300.dispense(vol, loc)
-            m300.mix(mix_reps, 0.8*vol, loc)
+#            m300.mix(mix_reps, 0.8*vol, loc)
+            m300.flow_rate.dispense = 500
+
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+
+            m300.flow_rate.dispense = 150
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:
@@ -350,10 +431,10 @@ resuming.')
     protocol. The normal sequence is:
     """
     bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips)
-    wash(wash2_vol, wash2, park=park_tips)
-    wash(wash3_vol, wash3, park=park_tips)
-    ctx.delay(minutes=1, msg='Dry beads for 1 minutes')
+    wash(wash1_vol, wash1, park=park_tips, resuspend=True)
+    wash(wash2_vol, wash2, park=park_tips, resuspend=True)
+    wash(wash3_vol, wash3, park=park_tips, resuspend=True)
+    ctx.delay(minutes=10, msg='Dry beads for 10 minutes')
     elute(elution_vol, park=park_tips)
 
     # track final used tip
@@ -363,3 +444,4 @@ resuming.')
         data = {'tips300': tip_log['count'][m300]}
         with open(tip_file_path, 'w') as outfile:
             json.dump(data, outfile)
+

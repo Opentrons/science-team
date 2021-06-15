@@ -6,7 +6,7 @@ import threading
 from time import sleep
 
 metadata = {
-    'protocolName': 'Beckman RNadvance Station B RNA Extraction',
+    'protocolName': 'Beckman RNadvance Viral XP',
     'author': '',
     'apiLevel': '2.3'
 }
@@ -364,22 +364,6 @@ resuming.')
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
-
-        # agitate after resuspension
-       # for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
-       #     if park:
-       #         _pick_up(m300, spot)
-       #     else:
-       #         _pick_up(m300)
-       #     side = 1 if i % 2 == 0 else -1
-       #     loc = m.bottom(0.5).move(Point(x=side*2))
-       #     m300.mix(10, 0.8*vol, loc)
-       #     #fm300.blow_out(m.bottom(5))
-       #     m300.air_gap(20)
-       #     if park:
-       #         m300.drop_tip(spot)
-       #     else:
-       #         _drop(m300)
 
         ctx.delay(minutes=5, msg='Incubating off magnet at room temperature \
 for 5 minutes')

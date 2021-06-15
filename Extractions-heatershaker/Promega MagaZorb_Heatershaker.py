@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":7,"park_tips":true,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":420,"binding_buffer_vol":500,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":7,"park_tips":true,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -10,6 +10,7 @@ import os
 import math
 import threading
 from time import sleep
+from opentrons import types
 
 metadata = {
     'protocolName': 'MagaZorb® DNA Mini-Prep Kit with Off deck Mixing',
@@ -94,7 +95,7 @@ def run(ctx):
 
     # load P300M pipette
     m300 = ctx.load_instrument(
-        'p300_multi_gen2', 'right', tip_racks=tips300)
+        'p300_multi_gen2', 'left', tip_racks=tips300)
 
     """
     Here is where you can define the locations of your reagents.
@@ -104,6 +105,12 @@ def run(ctx):
     wash1 = res1.wells()[6:]
     wash2 = res2.wells()[:6]
     wash3 = res2.wells()[6:10]
+
+    center = magplate['A1'].bottom().move(types.Point(x=0,y=0,z=0.1))
+    topright = magplate['A1'].bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+    topleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=3.8,z=0.1))
+    bottomright = magplate['A1'].bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+    bottomleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1))
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
@@ -275,18 +282,26 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-#            m300.mix(5, 200, well)
+            m300.mix(5, 200, well)
+
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+
+            m300.flow_rate.dispense = 150
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
             if park:
                 m300.drop_tip(spot)
             else:
-                _drop(m300)
+                _drop(m300)   
 
-        ctx.pause('Mixing off deck for 5 minutes')
+        ctx.pause('Mixing off deck for 5 minutes')  
         magdeck.engage(height=MAG_HEIGHT)
-        ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
-' + str(settling_time) + ' minutes.')
+        ctx.delay(minutes=12, msg='Incubating on MagDeck for 12 minutes.')
 
         # remove initial supernatant
         remove_supernatant(vol+starting_vol, park=park)
@@ -328,7 +343,76 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 150, loc)
+                #m300.mix(mix_reps, 150, loc)
+                m300.flow_rate.dispense = 500
+
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+
+                m300.flow_rate.dispense = 150
+
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -370,6 +454,74 @@ resuming.')
             m300.move_to(m.center())
             m300.dispense(vol, loc)
 #            m300.mix(mix_reps, 0.8*vol, loc)
+            m300.flow_rate.dispense = 500
+
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+
+            m300.flow_rate.dispense = 150
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:
@@ -398,10 +550,10 @@ resuming.')
     """
     Here is where you can call the methods defined above to fit your specific
     protoco    """
-    bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips, resuspend=False)
-    wash(wash2_vol, wash2, park=park_tips, resuspend=False)
-    wash(wash3_vol, wash3, park=park_tips, resuspend=False)
+    #bind(binding_buffer_vol, park=park_tips)
+    wash(wash1_vol, wash1, park=park_tips, resuspend=True)
+    wash(wash2_vol, wash2, park=park_tips, resuspend=True)
+    wash(wash3_vol, wash3, park=park_tips, resuspend=True)
     ctx.delay(minutes=1, msg='Incubate for 1 minutes to dry beads')
     elute(elution_vol, park=park_tips)
 

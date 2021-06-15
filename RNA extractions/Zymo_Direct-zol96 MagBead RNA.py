@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":800,"binding_buffer_vol":320,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":800,"binding_buffer_vol":320,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":10,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -79,7 +79,7 @@ def run(ctx):
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
     res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
-    ethanolres = ctx.load_labware('nest_1_reservoir_195ml', '5')
+#    ethanolres = ctx.load_labware('nest_1_reservoir_195ml', '5')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
@@ -108,7 +108,8 @@ def run(ctx):
     wash2 = res1.wells()[8:]
     dnase1 = [res2.wells()[0]]
     stopreaction = res2.wells()[1:5]
-    wash3 = [ethanolres.wells()[0]]
+    wash3 = res2.wells()[5:9]
+    wash4 = res2.wells()[9:11]
     elution_solution = res2.wells()[-1]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
@@ -480,17 +481,16 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-#    bind(binding_buffer_vol, park=park_tips)
-#    wash(wash1_vol, wash1, park=park_tips)
+    bind(binding_buffer_vol, park=park_tips)
+    wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
     wash(wash3_vol, wash3, park=park_tips)
-    wash(500, wash3, park=park_tips)
+    wash(300, wash4, park=park_tips)
     #dnase1 treatment
     dnase(50, dnase1, park=park_tips)
     stop_reaction(100, stopreaction, park=park_tips)
-    #resume washes
-    wash(500, wash3, park=park_tips)
-    ctx.delay(minutes=1, msg='delay for 1 minute for bead drying time')
+    #resume elution
+    ctx.delay(minutes=10, msg='delay for 10 minute for bead drying time')
     elute(elution_vol, park=park_tips)
 
     # track final used tip
