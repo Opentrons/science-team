@@ -373,13 +373,8 @@ resuming.')
             else:
                 _drop(m300)
         ctx.pause('mix for 5 minutes, transfer plate to bioshake')
-        device.exec_cmd('setShakeTargetSpeed800')  
-        device.exec_cmd('shakeOn')  
-        ctx.delay(minutes=5)
-        device.exec_cmd('shakeOff')
-        ctx.pause('move plate back')
         magdeck.engage(height=MAG_HEIGHT)
-        ctx.delay(minutes=8, msg='Incubating on MagDeck for 8 minutes.')
+        ctx.delay(minutes=12, msg='Incubating on MagDeck for 12 minutes.')
 
         # remove initial supernatant
         remove_supernatant(vol+starting_vol, park=park)
@@ -497,11 +492,6 @@ resuming.')
             else:
                 _drop(m300)
         ctx.pause('Mix on bioshake to resuspend')
-        device.exec_cmd('setShakeTargetSpeed800')  
-        device.exec_cmd('shakeOn')  
-        ctx.delay(minutes=3)
-        device.exec_cmd('shakeOff')
-        ctx.pause('move plate back')
         if magdeck.status == 'disengaged':
             magdeck.engage(height=MAG_HEIGHT)
 
@@ -607,10 +597,6 @@ resuming.')
                 _drop(m300)
 
         ctx.pause('Mix off deck for 10 minutes for DNase 1 treatment.')
-        device.exec_cmd('setShakeTargetSpeed800')  
-        device.exec_cmd('shakeOn')  
-        ctx.delay(minutes=10)
-        device.exec_cmd('shakeOff')
         ctx.pause('move plate back')
 
     def stop_reaction(vol, source, mix_reps=6, park=True, resuspend=True):
@@ -709,11 +695,6 @@ resuming.')
             else:
                 _drop(m300)
         ctx.pause('Mix off deck for 10 minutes for stop reaction')
-        device.exec_cmd('setShakeTargetSpeed800')  
-        device.exec_cmd('shakeOn')  
-        ctx.delay(minutes=10)
-        device.exec_cmd('shakeOff')
-        ctx.pause('move plate back')
         magdeck.engage()
         ctx.delay(minutes=5, msg='Incubating on magnet for 5 minutes')
         remove_supernatant(150, park=park)
@@ -817,11 +798,6 @@ resuming.')
             else:
                 _drop(m300)
         ctx.pause('Mix on bioshake to resuspend pellet')
-        device.exec_cmd('setShakeTargetSpeed800')  
-        device.exec_cmd('shakeOn')  
-        ctx.delay(minutes=2)
-        device.exec_cmd('shakeOff')
-        ctx.pause('move plate back')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -843,8 +819,6 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-    #resetting bioshake just in case
-    device.exec_cmd('resetDevice')
 
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips, resuspend=True)
