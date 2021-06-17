@@ -238,6 +238,50 @@ resuming.')
             _drop(m300)
         m300.flow_rate.aspirate = 150
 
+    def resuspend_pellet(well, pip, mvol, reps=5):
+        """
+        'resuspend_pellet' will forcefully dispense liquid over the pellet after
+        the magdeck engage in order to more thoroughly resuspend the pellet.
+        param well: The current well that the resuspension will occur in.
+        param pip: The pipet that is currently attached/ being used.
+        param mvol: The volume that is transferred before the mixing steps.
+        param reps: The number of mix repetitions that should occur. Note~
+        During each mix rep, there are 2 cycles of aspirating from center,
+        dispensing at the top and 2 cycles of aspirating from center,
+        dispensing at the bottom (5 mixes total)
+        """
+
+        rightLeft = int(str(well).split(' ')[0][1:]) % 2
+        """
+        'rightLeft' will determine which value to use in the list of 'top' and
+        'bottom' (below), based on the column of the 'well' used.
+        In the case that an Even column is used, the first value of 'top' and
+        'bottom' will be used, otherwise, the second value of each will be used.
+        """
+        center = well.bottom().move(types.Point(x=0,y=0,z=0.1))
+        top = [
+            well.bottom().move(types.Point(x=-3.8,y=3.8,z=0.1)),
+            well.bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+        ]
+        bottom = [
+            well.bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1)),
+            well.bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+        ]
+
+        pip.flow_rate.dispense = 500
+        pip.flow_rate.aspirate = 150
+
+        mix_vol = 0.9 * mvol
+
+        pip.move_to(center)
+        for _ in range(reps):
+            for _ in range(2):
+                pip.aspirate(mix_vol, center)
+                pip.dispense(mix_vol, top[rightLeft])
+            for _ in range(2):
+                pip.aspirate(mix_vol, center)
+                pip.dispense(mix_vol, bottom[rightLeft])
+
     def bind(vol, park=True):
         latest_chan = -1
         for i, (well, spot) in enumerate(zip(mag_samples_m, parking_spots)):
@@ -301,42 +345,8 @@ resuming.')
                     m300.air_gap(20)
             if resuspend:
                 #m300.mix(mix_reps, 150, loc)
-                m300.flow_rate.dispense = 500
+                resuspend_pellet(m, m300, 180)
 
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-
-                m300.flow_rate.dispense = 150
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -352,6 +362,7 @@ resuming.')
 
         remove_supernatant(vol, park=park)
 
+
     def elute(vol, park=True):
 
 
@@ -366,42 +377,7 @@ resuming.')
             m300.move_to(m.center())
             m300.dispense(vol, loc)
 #            m300.mix(mix_reps, 0.8*vol, loc)
-            m300.flow_rate.dispense = 500
-
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-
-            m300.flow_rate.dispense = 150
+            resuspend_pellet(m, m300, 180)
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:

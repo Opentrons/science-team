@@ -10,6 +10,7 @@ import os
 import math
 import threading
 from time import sleep
+from opentrons import types
 
 metadata = {
     'protocolName': 'Quick-DNA/RNA™ MagBead',
@@ -71,15 +72,13 @@ def run(ctx):
     magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = ctx.load_labware(
-                'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                '1')
+    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = tempdeck.load_labware(
+                'opentrons_96_aluminumblock_nest_wellplate_100ul')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
     res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
-#    ethanolres = ctx.load_labware('nest_1_reservoir_195ml', '5')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
@@ -115,7 +114,7 @@ def run(ctx):
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-#    tempdeck.set_temperature(4)
+    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -248,6 +247,50 @@ resuming.')
             _drop(m300)
         m300.flow_rate.aspirate = 150
 
+    def resuspend_pellet(well, pip, mvol, reps=5):
+        """
+        'resuspend_pellet' will forcefully dispense liquid over the pellet after
+        the magdeck engage in order to more thoroughly resuspend the pellet.
+        param well: The current well that the resuspension will occur in.
+        param pip: The pipet that is currently attached/ being used.
+        param mvol: The volume that is transferred before the mixing steps.
+        param reps: The number of mix repetitions that should occur. Note~
+        During each mix rep, there are 2 cycles of aspirating from center,
+        dispensing at the top and 2 cycles of aspirating from center,
+        dispensing at the bottom (5 mixes total)
+        """
+
+        rightLeft = int(str(well).split(' ')[0][1:]) % 2
+        """
+        'rightLeft' will determine which value to use in the list of 'top' and
+        'bottom' (below), based on the column of the 'well' used.
+        In the case that an Even column is used, the first value of 'top' and
+        'bottom' will be used, otherwise, the second value of each will be used.
+        """
+        center = well.bottom().move(types.Point(x=0,y=0,z=0.1))
+        top = [
+            well.bottom().move(types.Point(x=-3.8,y=3.8,z=0.1)),
+            well.bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+        ]
+        bottom = [
+            well.bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1)),
+            well.bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+        ]
+
+        pip.flow_rate.dispense = 500
+        pip.flow_rate.aspirate = 150
+
+        mix_vol = 0.9 * mvol
+
+        pip.move_to(center)
+        for _ in range(reps):
+            for _ in range(2):
+                pip.aspirate(mix_vol, center)
+                pip.dispense(mix_vol, top[rightLeft])
+            for _ in range(2):
+                pip.aspirate(mix_vol, center)
+                pip.dispense(mix_vol, bottom[rightLeft])
+
     def bind(vol, park=True):
         """
         `bind` will perform magnetic bead binding on each sample in the
@@ -284,14 +327,14 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-            m300.mix(5, 200, well)
+            #m300.mix(5, 200, well)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
             if park:
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
-        ctx.delay(minutes=10, msg='mix for 10 minutes off-deck in a heatershaker')
+        ctx.pause('mix for 10 minutes off-deck in a heatershaker')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -336,7 +379,8 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 150, loc)
+                #m300.mix(mix_reps, 150, loc)
+                resuspend_pellet(m, m300, 180)
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -372,7 +416,8 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 30, loc)
+                #m300.mix(mix_reps, 30, loc)
+                resuspend_pellet(m, m300, 50)
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -380,7 +425,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes=10, msg='Incubating for 10 minutes for DNase 1 treatment with occasional mixing.')
+        ctx.pause('Incubating for 10 minutes for DNase 1 treatment with occasional mixing.')
 
     def stop_reaction(vol, source, mix_reps=6, park=True, resuspend=True):
 
@@ -402,7 +447,8 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 50, loc)
+                #m300.mix(mix_reps, 50, loc)
+                resuspend_pellet(m, m300, 180)
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -410,7 +456,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        ctx.delay(minutes = 10, msg='Incubating for 10 minutes with occasional mixing for stop reaction')
+        ctx.pause('Incubating for 10 minutes with occasional mixing for stop reaction')
 
         if magdeck.status == 'disengaged':
             magdeck.engage(height=MAG_HEIGHT)
@@ -443,7 +489,8 @@ resuming.')
             m300.aspirate(vol, elution_solution)
             m300.move_to(m.center())
             m300.dispense(vol, loc)
-            m300.mix(mix_reps, 0.8*vol, loc)
+            #m300.mix(mix_reps, 0.8*vol, loc)
+            resuspend_pellet(m, m300, 50)
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:

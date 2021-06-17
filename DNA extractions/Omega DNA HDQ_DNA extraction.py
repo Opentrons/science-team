@@ -72,10 +72,10 @@ def run(ctx):
     magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
