@@ -307,15 +307,23 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-#            m300.mix(5, 200, well)
+            #mix 1st time
+            resuspend_pellet(well, m300, 200)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
+            m300.drop_tip(spot)
+
+            #mix second time
+            _pick_up(m300, spot)
+            resuspend_pellet(well, m300, 200)
+            m300.blow_out(well.top(-2))
+            m300.air_gap(20)
+
             if park:
                 m300.drop_tip(spot)
             else:
                 _drop(m300)
 
-        ctx.pause('Mix for 15 minutes off-deck to bind the beads to the sample')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
