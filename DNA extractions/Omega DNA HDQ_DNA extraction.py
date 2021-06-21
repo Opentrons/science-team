@@ -106,12 +106,6 @@ def run(ctx):
     wash2 = res1.wells()[8:]
     wash3 = res2.wells()[:4]
 
-    center = magplate['A1'].bottom().move(types.Point(x=0,y=0,z=0.1))
-    topright = magplate['A1'].bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
-    topleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=3.8,z=0.1))
-    bottomright = magplate['A1'].bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
-    bottomleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1))
-
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
@@ -243,6 +237,50 @@ resuming.')
             _drop(m300)
         m300.flow_rate.aspirate = 150
 
+    def resuspend_pellet(well, pip, mvol, reps=5):
+        """
+        'resuspend_pellet' will forcefully dispense liquid over the pellet after
+        the magdeck engage in order to more thoroughly resuspend the pellet.
+        param well: The current well that the resuspension will occur in.
+        param pip: The pipet that is currently attached/ being used.
+        param mvol: The volume that is transferred before the mixing steps.
+        param reps: The number of mix repetitions that should occur. Note~
+        During each mix rep, there are 2 cycles of aspirating from center,
+        dispensing at the top and 2 cycles of aspirating from center,
+        dispensing at the bottom (5 mixes total)
+        """
+
+        rightLeft = int(str(well).split(' ')[0][1:]) % 2
+        """
+        'rightLeft' will determine which value to use in the list of 'top' and
+        'bottom' (below), based on the column of the 'well' used.
+        In the case that an Even column is used, the first value of 'top' and
+        'bottom' will be used, otherwise, the second value of each will be used.
+        """
+        center = well.bottom().move(types.Point(x=0,y=0,z=0.1))
+        top = [
+            well.bottom().move(types.Point(x=-3.8,y=3.8,z=0.1)),
+            well.bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+        ]
+        bottom = [
+            well.bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1)),
+            well.bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+        ]
+
+        pip.flow_rate.dispense = 500
+        pip.flow_rate.aspirate = 150
+
+        mix_vol = 0.9 * mvol
+
+        pip.move_to(center)
+        for _ in range(reps):
+            for _ in range(2):
+                pip.aspirate(mix_vol, center)
+                pip.dispense(mix_vol, top[rightLeft])
+            for _ in range(2):
+                pip.aspirate(mix_vol, center)
+                pip.dispense(mix_vol, bottom[rightLeft])
+
     def bind(vol, park=True):
         """
         `bind` will perform magnetic bead binding on each sample in the
@@ -282,43 +320,8 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-            #m300.mix(5, 200, well)
-            m300.flow_rate.dispense = 500
+            m300.mix(5, 200, well)
 
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,topright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-            m300.aspirate(180,center)
-            m300.dispense(180,bottomright)
-
-            m300.flow_rate.dispense = 150
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
             if park:
@@ -371,42 +374,8 @@ resuming.')
                     m300.air_gap(20)
             if resuspend:
                 #m300.mix(mix_reps, 150, loc)
-                m300.flow_rate.dispense = 500
+                resuspend_pellet(m, m300, 180)
 
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,topright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-                m300.aspirate(180,center)
-                m300.dispense(180,bottomright)
-
-                m300.flow_rate.dispense = 150
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -453,57 +422,6 @@ resuming.')
             else:
                 _drop(m300)
 
-        # agitate after resuspension
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
-            if park:
-                _pick_up(m300, spot)
-            else:
-                _pick_up(m300)
-            side = 1 if i % 2 == 0 else -1
-            loc = m.bottom(0.5).move(Point(x=side*2))
-            #m300.mix(10, 0.8*vol, loc)
-            m300.flow_rate.dispense = 500
-
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,topright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-            m300.aspirate(50,center)
-            m300.dispense(50,bottomright)
-
-            m300.flow_rate.dispense = 150
-            m300.blow_out(m.bottom(5))
-            m300.air_gap(20)
-            if park:
-                m300.drop_tip(spot)
-            else:
-                _drop(m300)
         ctx.delay(minutes=5, msg='Delay for 5 minutes for elution')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
@@ -526,7 +444,6 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-#    ctx.delay(minutes=10, msg='Heat off-deck at 70C for 10 minutes for lysing')
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
