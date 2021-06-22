@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":100,"binding_buffer_vol":170,"wash1_vol":200,"wash2_vol":200,"wash3_vol":200,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":100,"binding_buffer_vol":170,"wash1_vol":200,"wash2_vol":200,"wash3_vol":200,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":true,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -154,9 +154,12 @@ resuming.')
             tip_log['count'][pip] = 0
         if loc:
             pip.pick_up_tip(loc)
+            return loc
         else:
             pip.pick_up_tip(tip_log['tips'][pip][tip_log['count'][pip]])
+            tip = tip_log['tips'][pip][tip_log['count'][pip]]
             tip_log['count'][pip] += 1
+            return tip
 
     switch = True
     drop_count = 0
@@ -192,7 +195,7 @@ resuming.')
     waste_vol = 0
     waste_threshold = 185000
 
-    def remove_supernatant(vol, park=False):
+    def remove_supernatant(vol, park=False, spots=parking_spots):
 
         def _waste_track(vol):
             nonlocal waste_vol
@@ -218,7 +221,7 @@ resuming.')
         m300.flow_rate.aspirate = 30
         num_trans = math.ceil(vol/200)
         vol_per_trans = vol/num_trans
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
+        for i, (m, spot) in enumerate(zip(mag_samples_m, spots)):
             if park:
                 _pick_up(m300, spot)
             else:
@@ -284,11 +287,10 @@ resuming.')
 
     def bind(vol, park=True):
         latest_chan = -1
-        for i, (well, spot) in enumerate(zip(mag_samples_m, parking_spots)):
-            if park:
-                _pick_up(m300, spot)
-            else:
-                _pick_up(m300)
+        tips = []
+        for i, well in enumerate(mag_samples_m):
+            tip = _pick_up(m300)
+            tips.append(tip)
             num_trans = math.ceil(vol/200)
             vol_per_trans = vol/num_trans
             asp_per_chan = (0.95*res1.wells()[0].max_volume)//(vol_per_trans*8)
@@ -307,32 +309,41 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-            #mix 1st time
-            resuspend_pellet(well, m300, 200)
-            m300.blow_out(well.top(-2))
-            m300.air_gap(20)
-            m300.drop_tip(spot)
 
-            #mix second time
-            _pick_up(m300, spot)
+            #mix 1st time
             resuspend_pellet(well, m300, 200)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
 
             if park:
-                m300.drop_tip(spot)
+                m300.drop_tip(tip)
             else:
                 _drop(m300)
+
+        for i, (well, tip) in enumerate(zip(mag_samples_m, tips)):
+            if park:
+                _pick_up(m300, tip)
+            else:
+                _pick_up(m300)
+
+            #mix second time
+            resuspend_pellet(well, m300, 200)
+            m300.blow_out(well.top(-2))
+            m300.air_gap(20)
+
+            #if park:
+            #    m300.drop_tip(tip)
+            #else:
+            _drop(m300)
 
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
 
         # remove initial supernatant
-        remove_supernatant(vol+starting_vol, park=park)
+        remove_supernatant(vol+starting_vol, park=park, spots=tips)
 
     def wash(vol, source, mix_reps=15, park=True, resuspend=True):
-
 
         if resuspend and magdeck.status == 'engaged':
             magdeck.disengage()
@@ -372,7 +383,6 @@ resuming.')
 
 
     def elute(vol, park=True):
-
 
         # resuspend beads in elution
         if magdeck.status == 'enagaged':
@@ -414,12 +424,12 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
-    bind(binding_buffer_vol, park=park_tips)
-    wash(wash1_vol, wash1, park=park_tips, resuspend=True)
-    wash(wash2_vol, wash2, park=park_tips, resuspend=True)
-    wash(wash3_vol, wash3, park=park_tips, resuspend=True)
-    ctx.delay(minutes=10, msg='Dry beads for 10 minutes')
-    elute(elution_vol, park=park_tips)
+    bind(binding_buffer_vol, park=True)
+    wash(wash1_vol, wash1, park=False, resuspend=True)
+    wash(wash2_vol, wash2, park=False, resuspend=True)
+    wash(wash3_vol, wash3, park=False, resuspend=True)
+    ctx.delay(minutes=20, msg='Dry beads for 20 minutes')
+    elute(elution_vol, park=False)
 
     # track final used tip
     if tip_track and not ctx.is_simulating():
@@ -428,4 +438,5 @@ resuming.')
         data = {'tips300': tip_log['count'][m300]}
         with open(tip_file_path, 'w') as outfile:
             json.dump(data, outfile)
+
 
