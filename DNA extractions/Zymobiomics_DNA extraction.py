@@ -241,7 +241,7 @@ resuming.')
             _drop(m300)
         m300.flow_rate.aspirate = 150
 
-    def resuspend_pellet(well, pip, mvol, reps=5):
+    def resuspend_pellet(well, pip, mvol, reps=10):
         """
         'resuspend_pellet' will forcefully dispense liquid over the pellet after
         the magdeck engage in order to more thoroughly resuspend the pellet.
