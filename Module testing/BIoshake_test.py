@@ -13,13 +13,13 @@ def run(protocol: protocol_api.ProtocolContext):
 	#load tip rack, pipette and labware
     tip_rack = protocol.load_labware('opentrons_96_tiprack_300ul', 2)
 
-    pipette_right = protocol.load_instrument('p300_single', 
+    pipette_right = protocol.load_instrument('p300_single',
                                              'right', tip_racks=[tip_rack])
 
     #load bioshake - remember to change serial number to match your devices!
-    device = QIDevice(serial_number='19762', 
+    device = QIDevice(serial_number='19762',
                       deck_position=1, adapter_set_up=1, protocol=protocol)
-    
+
     #first, upload Qinstrument's custom labware to the OT-2. Next, make sure you
     #add the z_offset, item_depth, and item_volume
     lbw = device.load_labware( '2016_1062',
@@ -36,8 +36,8 @@ def run(protocol: protocol_api.ProtocolContext):
     pipette_right.drop_tip()
 
     #testing temp at 37C for 20 seconds while shaking still occurs
-    device.exec_cmd('setShakeTargetSpeed500')  
-    device.exec_cmd('shakeOn')  
+    device.exec_cmd('setShakeTargetSpeed800')  
+    device.exec_cmd('shakeOn')
     device.exec_cmd('setTempTarget370', blocking=True)
     device.exec_cmd('tempOn', polling=True)
     protocol.delay(seconds=20, msg='shaking at 500rpm and heating at 37C for 20 seconds')
