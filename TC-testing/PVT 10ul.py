@@ -1,4 +1,4 @@
-metadata = {'apiLevel': '2.1'} 
+metadata = {'apiLevel': '2.1'}
 
 # API 2
 # Annika Yasuf
@@ -69,7 +69,7 @@ def run(context):
     # B4- Water 840  add  1000ul total
     # A3- Empty 50ml eppendorf
     # C1- 80ul DNA add 100ul total
-    
+
 
     pipette20 = context.load_instrument('p20_single_gen2', 'left',
                                         tip_racks=[tip_rack_20ul])
@@ -188,7 +188,7 @@ def run(context):
         new_tip='never')
     pipette300.drop_tip()
 
-    
+
 
     # DNA
 
@@ -199,7 +199,7 @@ def run(context):
         reagents.wells('A3'),
         new_tip='never')
     pipette300.drop_tip()
-    
+
     context.pause()
 
     well_names = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'B11', 'B12', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11',
@@ -212,13 +212,14 @@ def run(context):
             reagents.wells('A3'),
             tc_plate.wells(well_name),
             trash=True,
-            blow_out=True
+            blow_out=True,
+            new_tip='never'
         )
 
     context.pause()
-    
 
-   
+
+
 
     thermocycler.close_lid()
     run_temp_profile(thermocycler)
