@@ -1,0 +1,11 @@
+from opentrons import protocol_api
+import numpy as np
+
+metadata = {
+    'protocolName': 'Liquid Handling Initialisation_WaterTest',
+    'author': 'Anurag Kanase <anurag.kanase@opentrons.com>',
+    'description': 'Glycerol different Volume ',
+    'apiLevel': '2.9'
+}
+
+def run(protocol:protocol_api.ProtocolContext):
