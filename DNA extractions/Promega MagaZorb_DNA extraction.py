@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":96,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":500,"wash1_vol":1000,"wash2_vol":1000,"wash3_vol":600,"elution_vol":200,"mix_reps":15,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":200,"binding_buffer_vol":400,"wash1_vol":500,"wash2_vol":500,"wash3_vol":500,"elution_vol":50,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -10,6 +10,7 @@ import os
 import math
 import threading
 from time import sleep
+from opentrons import types
 
 metadata = {
     'protocolName': 'MagaZorb® DNA Mini-Prep Kit',
@@ -21,7 +22,7 @@ metadata = {
 """
 Here is where you can modify the magnetic module engage height:
 """
-MAG_HEIGHT = 6.8
+MAG_HEIGHT = 13.6
 
 
 # Definitions for deck light flashing
@@ -68,13 +69,13 @@ def run(ctx):
     Here is where you can change the locations of your labware and modules
     (note that this is the recommended configuration)
     """
-    magdeck = ctx.load_module('magnetic module gen2', '6')
+    magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
-    elutionplate = tempdeck.load_labware(
+#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
+    elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                'elution plate')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
     res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
@@ -94,21 +95,27 @@ def run(ctx):
 
     # load P300M pipette
     m300 = ctx.load_instrument(
-        'p300_multi_gen2', 'left', tip_racks=tips300)
+        'p300_multi_gen2', 'right', tip_racks=tips300)
 
     """
     Here is where you can define the locations of your reagents.
     """
     binding_buffer = res1.wells()[:4]
     elution_solution = res2.wells()[-1]
-    wash1 = res1.wells()[4:]
-    wash2 = res2.wells()[:8]
+    wash1 = res1.wells()[4:10]
+    wash2 = res2.wells()[:6]
+
+    center = magplate['A1'].bottom().move(types.Point(x=0,y=0,z=0.1))
+    topright = magplate['A1'].bottom().move(types.Point(x=3.8,y=3.8,z=0.1))
+    topleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=3.8,z=0.1))
+    bottomright = magplate['A1'].bottom().move(types.Point(x=3.8,y=-3.8,z=0.1))
+    bottomleft = magplate['A1'].bottom().move(types.Point(x=-3.8,y=-3.8,z=0.1))
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
 
 #    magdeck.disengage()  # just in case
-    tempdeck.set_temperature(4)
+#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -229,7 +236,7 @@ resuming.')
                     m300.dispense(m300.current_volume, m.top())
                 m300.move_to(m.center())
                 m300.transfer(vol_per_trans, loc, waste, new_tip='never',
-                              air_gap=20)
+                              air_gap=10)
                 m300.blow_out(waste)
                 m300.air_gap(20)
             _drop(m300)
@@ -274,7 +281,7 @@ resuming.')
                               new_tip='never')
                 if t < num_trans - 1:
                     m300.air_gap(20)
-            m300.mix(5, 200, well)
+            #m300.mix(5, 200, well)
             m300.blow_out(well.top(-2))
             m300.air_gap(20)
             if park:
@@ -282,6 +289,7 @@ resuming.')
             else:
                 _drop(m300)
 
+        ctx.pause('mix off deck on a shaker for 10 minutes')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -326,7 +334,43 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                m300.mix(mix_reps, 150, loc)
+                #m300.mix(mix_reps, 150, loc)
+                m300.flow_rate.dispense = 500
+
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,topright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+                m300.aspirate(180,center)
+                m300.dispense(180,bottomright)
+
+                m300.flow_rate.dispense = 150
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -365,7 +409,43 @@ resuming.')
             m300.aspirate(vol, elution_solution)
             m300.move_to(m.center())
             m300.dispense(vol, loc)
-            m300.mix(mix_reps, 0.8*vol, loc)
+            #m300.mix(mix_reps, 0.8*vol, loc)
+            m300.flow_rate.dispense = 500
+
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,topright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+            m300.aspirate(180,center)
+            m300.dispense(180,bottomright)
+
+            m300.flow_rate.dispense = 150
             m300.blow_out(m.bottom(5))
             m300.air_gap(20)
             if park:
@@ -373,22 +453,7 @@ resuming.')
             else:
                 _drop(m300)
 
-        # agitate after resuspension
-        for i, (m, spot) in enumerate(zip(mag_samples_m, parking_spots)):
-            if park:
-                _pick_up(m300, spot)
-            else:
-                _pick_up(m300)
-            side = 1 if i % 2 == 0 else -1
-            loc = m.bottom(0.5).move(Point(x=side*2))
-            m300.mix(10, 0.8*vol, loc)
-            m300.blow_out(m.bottom(5))
-            m300.air_gap(20)
-            if park:
-                m300.drop_tip(spot)
-            else:
-                _drop(m300)
-
+        ctx.delay(minutes=5, msg='Incubating for elution for 5 minutes')
         magdeck.engage(height=MAG_HEIGHT)
         ctx.delay(minutes=settling_time, msg='Incubating on MagDeck for \
 ' + str(settling_time) + ' minutes.')
@@ -408,14 +473,13 @@ resuming.')
 
     """
     Here is where you can call the methods defined above to fit your specific
-    protocol. The normal sequence is:
-    """
-    ctx.delay(minutes=10, msg='Incubate at 56C for 10 minutes on an off-deck heater/shaker')
+    protoco    """
     bind(binding_buffer_vol, park=park_tips)
     wash(wash1_vol, wash1, park=park_tips)
     wash(wash2_vol, wash2, park=park_tips)
-    ctx.delay(minutes=10, msg='Incubate for 10 minutes to dry beads')
+    ctx.delay(minutes=1, msg='Incubate for 1 minutes to dry beads')
     elute(elution_vol, park=park_tips)
+
 
     # track final used tip
     if tip_track and not ctx.is_simulating():

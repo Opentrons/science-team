@@ -1,5 +1,5 @@
 #Sample barcoding start and stop reaction setup Protocol 5/9
-#last update: December 23, 2020
+#last update: March 23, 2021
 #Seqwell Workflow
 
 import math
@@ -26,8 +26,9 @@ def run(ctx):
 
     tc_plate = ctx.load_labware('biorad_96_wellplate_200ul_pcr', '3')
     tc_plate2 = magdeck.load_labware('biorad_96_wellplate_200ul_pcr')
-    strips = tempdeck.load_labware('usascientific_200ul_pcrstrip')
+    #strips = tempdeck.load_labware('usascientific_200ul_pcrstrip')
     #strips = tempdeck.load_labware('opentrons_96_aluminumblock_generic_pcr_strip_200ul')
+    strips = tempdeck.load_labware('opentrons_96_aluminumblock_nest_wellplate_100ul')
     dna_plate = ctx.load_labware(
         'biorad_96_wellplate_200ul_pcr', '1')
     dna_plate2 = ctx.load_labware(
@@ -76,9 +77,11 @@ def run(ctx):
             m20.air_gap(5)
             m20.drop_tip()
 
-    m20.flow_rate.aspirate = 7.6
-    m20.flow_rate.dispense = 7.6
-    m20.flow_rate.blow_out = 100
+    #m20.flow_rate.aspirate = 7.6
+    #m20.flow_rate.dispense = 7.6
+    m20.flow_rate.aspirate = 0.765
+    m20.flow_rate.dispense = 0.765
+    withdrawal_speed       = 1 #mm/s
 
     # translate starting vol to starting height
     starting_vol = num_cols*NUM_PLATES*4
@@ -93,19 +96,23 @@ def run(ctx):
             h = 0.1
 
         pick_up()
-        m20.aspirate(4, coding_buffer_strip[0].bottom(h))
-        m20.touch_tip(v_offset=-3)
-        m20.air_gap(2)
+        m20.aspirate(4, coding_buffer_strip[0].bottom(h)) #,rate = 1/10
+        m20.move_to(coding_buffer_strip[0].top(4),speed=withdrawal_speed)
+        #m20.touch_tip(v_offset=-3)
+        #m20.air_gap(2)
         m20.dispense(6, d.bottom())
         m20.flow_rate.aspirate = 2
         m20.flow_rate.dispense = 2
         m20.mix(6, 3)
-        m20.touch_tip(v_offset=-3)
+        m20.flow_rate.aspirate = 0.765
+        m20.flow_rate.dispense = 0.765
+        m20.move_to(d.top(),speed=withdrawal_speed)
+        #m20.touch_tip(v_offset=-3)
         m20.flow_rate.blow_out = 100
         m20.blow_out()
-        m20.flow_rate.aspirate = 7.6
-        m20.flow_rate.dispense = 7.6
-        m20.air_gap(5)
+        #m20.flow_rate.aspirate = 7.6
+        #m20.flow_rate.dispense = 7.6
+        #m20.air_gap(5)
         m20.drop_tip()
 
     if NUM_PLATES == 2:
@@ -117,19 +124,23 @@ def run(ctx):
                 h = 0.1
 
             pick_up()
-            m20.aspirate(4, coding_buffer_strip[0].bottom(h))
-            m20.touch_tip(v_offset=-3)
-            m20.air_gap(2)
+            m20.aspirate(4, coding_buffer_strip[0].bottom(h)) #,rate = 1/10
+            m20.move_to(coding_buffer_strip[0].top(4),speed=withdrawal_speed)
+            #m20.touch_tip(v_offset=-3)
+            #m20.air_gap(2)
             m20.dispense(6, d.bottom())
             m20.flow_rate.aspirate = 2
             m20.flow_rate.dispense = 2
             m20.mix(6, 3)
-            m20.touch_tip(v_offset=-3)
+            m20.flow_rate.aspirate = 0.765
+            m20.flow_rate.dispense = 0.765
+            m20.move_to(d.top(),speed=withdrawal_speed)
+        #m20.touch_tip(v_offset=-3)
             m20.flow_rate.blow_out = 100
             m20.blow_out()
-            m20.flow_rate.aspirate = 7.6
-            m20.flow_rate.dispense = 7.6
-            m20.air_gap(5)
+        #m20.flow_rate.aspirate = 7.6
+        #m20.flow_rate.dispense = 7.6
+        #m20.air_gap(5)
             m20.drop_tip()
 
     ctx.pause('place the plate(s) in slot 2 and 5 in the thermocycler \
@@ -154,7 +165,7 @@ def run(ctx):
 
         pick_up()
         m20.aspirate(6, x_solution_strip[0].bottom(h))
-        m20.touch_tip()
+#        m20.touch_tip()
         m20.air_gap(2)
         m20.dispense(8, d.bottom())
         m20.mix(2, 4)
@@ -173,7 +184,7 @@ def run(ctx):
 
             pick_up()
             m20.aspirate(6, x_solution_strip[0].bottom(h))
-            m20.touch_tip()
+#            m20.touch_tip()
             m20.air_gap(2)
             m20.dispense(8, d.bottom())
             m20.mix(2, 4)
