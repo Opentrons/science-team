@@ -74,7 +74,6 @@ def run(ctx):
     magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
     elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
                 '1')
@@ -110,9 +109,6 @@ def run(ctx):
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
-
-#    magdeck.disengage()  # just in case
-#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
