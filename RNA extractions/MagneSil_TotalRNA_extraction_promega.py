@@ -104,10 +104,10 @@ def run(ctx):
     Here is where you can define the locations of your reagents.
     """
     binding_buffer = [res1.wells()[0]]
-    wash1 = res1.wells()[1:3]
-    wash2 = res1.wells()[5:7]
-    wash3 = res1.wells()[7:9]
-    wash4 = res1.wells()[9:11]
+    wash1 = res1.wells()[1]
+    wash2 = res1.wells()[5]
+    wash3 = res1.wells()[7]
+    wash4 = res1.wells()[9]
     dnase1 = [res1.wells()[3]]
     stopreaction = [res1.wells()[4]]
     elution_solution = res1.wells()[-1]
@@ -336,7 +336,7 @@ resuming.')
             _pick_up(m300)
             side = 1 if i % 2 == 0 else -1
             loc = m.bottom(0.5).move(Point(x=side*2))
-            src = source[i//(12//len(source))]
+            src = source
             for n in range(num_trans):
                 if m300.current_volume > 0:
                     m300.dispense(m300.current_volume, src.top())
@@ -372,7 +372,7 @@ resuming.')
             _pick_up(m300)
             side = 1 if i % 2 == 0 else -1
             loc = m.bottom(0.5).move(Point(x=side*2))
-            src = source[i//(12//len(source))]
+            src = source
             for n in range(num_trans):
                 if m300.current_volume > 0:
                     m300.dispense(m300.current_volume, src.top())
@@ -403,7 +403,7 @@ resuming.')
             _pick_up(m300)
             side = 1 if i % 2 == 0 else -1
             loc = m.bottom(0.5).move(Point(x=side*2))
-            src = source[i//(12//len(source))]
+            src = source
             for n in range(num_trans):
                 if m300.current_volume > 0:
                     m300.dispense(m300.current_volume, src.top())
