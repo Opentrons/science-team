@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":120,"binding_buffer_vol":200,"wash1_vol":100,"wash2_vol":100,"wash3_vol":100,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":48,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":120,"binding_buffer_vol":200,"wash1_vol":100,"wash2_vol":100,"wash3_vol":100,"elution_vol":50,"mix_reps":10,"settling_time":5,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -103,13 +103,11 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = [res1.wells()[0]]
-    wash1 = res1.wells()[1]
-    wash2 = res1.wells()[5]
-    wash3 = res1.wells()[7]
-    wash4 = res1.wells()[9]
-    dnase1 = [res1.wells()[3]]
-    stopreaction = [res1.wells()[4]]
+    wash1 = res1.wells()[2]
+    wash2 = res1.wells()[3]
+    wash3 = res1.wells()[4]
+    dnase1 = [res1.wells()[0]]
+    stopreaction = [res1.wells()[1]]
     elution_solution = res1.wells()[-1]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
@@ -381,7 +379,7 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                resuspend_pellet(m, m300, 180)
+                resuspend_pellet(m, m300, 50)
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -412,7 +410,7 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                resuspend_pellet(m, m300, 180)
+                resuspend_pellet(m, m300, 50)
             m300.blow_out(m.top())
             m300.air_gap(20)
             if park:
@@ -472,7 +470,9 @@ resuming.')
     Here is where you can call the methods defined above to fit your specific
     protocol. The normal sequence is:
     """
+    magdeck.engage(MAG_HEIGHT)
     remove_supernatant(starting_vol)
+    magdeck.disengage()
     wash(wash1_vol, wash1, park=park_tips)
     #rnase 1 treatment
     dnase(50, dnase1, park=park_tips)
