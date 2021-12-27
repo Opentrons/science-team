@@ -1,6 +1,6 @@
 def get_values(*names):
     import json
-    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":600,"wash1_vol":500,"wash2_vol":600,"wash3_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":5,"park_tips":true,"tip_track":false,"flash":false}""")
+    _all_values = json.loads("""{"num_samples":8,"deepwell_type":"nest_96_wellplate_2ml_deep","res_type":"nest_12_reservoir_15ml","starting_vol":600,"binding_buffer_vol":600,"wash1_vol":500,"wash2_vol":600,"elution_vol":50,"mix_reps":15,"settling_time":7,"park_tips":false,"tip_track":false,"flash":false}""")
     return [_all_values[n] for n in names]
 
 
@@ -75,18 +75,17 @@ def run(ctx):
     magdeck = ctx.load_module('magdeck', '6')
     magdeck.disengage()
     magplate = magdeck.load_labware(deepwell_type, 'deepwell plate')
-#    tempdeck = ctx.load_module('Temperature Module Gen2', '1')
     elutionplate = ctx.load_labware(
                 'opentrons_96_aluminumblock_nest_wellplate_100ul',
-                '2')
+                '1')
     waste = ctx.load_labware('nest_1_reservoir_195ml', '9',
                              'Liquid Waste').wells()[0].top()
-#    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
-    res1 = ctx.load_labware(res_type, '3', 'reagent reservoir 1')
+    res1 = ctx.load_labware(res_type, '2', 'reagent reservoir 1')
+    res2 = ctx.load_labware(res_type, '3', 'reagent reservoir 2')
     num_cols = math.ceil(num_samples/8)
     tips300 = [ctx.load_labware('opentrons_96_tiprack_300ul', slot,
                                 '200µl filtertiprack')
-               for slot in ['1','5', '7', '8', '10', '11']]
+               for slot in ['5', '7', '8', '10', '11']]
     if park_tips:
         parkingrack = ctx.load_labware(
             'opentrons_96_tiprack_300ul', '4', 'tiprack for parking')
@@ -103,17 +102,13 @@ def run(ctx):
     """
     Here is where you can define the locations of your reagents.
     """
-    binding_buffer = res1.wells()[:2]
+    binding_buffer = res1.wells()[:6]
     elution_solution = res1.wells()[-1]
-    wash1 = res1.wells()[2:4]
-    wash2 = res1.wells()[4:8]
-    wash3 = res1.wells()[8:]
+    wash1 = res1.wells()[6:10]
+    wash2 = res2.wells()[6:]
 
     mag_samples_m = magplate.rows()[0][:num_cols]
     elution_samples_m = elutionplate.rows()[0][:num_cols]
-
-#    magdeck.disengage()  # just in case
-#    tempdeck.set_temperature(4)
 
     m300.flow_rate.aspirate = 50
     m300.flow_rate.dispense = 150
@@ -311,6 +306,7 @@ resuming.')
 
 
     def bind(vol, park=True):
+        
         latest_chan = -1
         tips = []
         for i, well in enumerate(mag_samples_m):
@@ -345,13 +341,13 @@ resuming.')
         BindIncubate = 5
         for binddelay in np.arange(BindIncubate, 0, -1): #Bind delay countdown- (BindIncubate * 2) minutes long
             ctx.delay(minutes=2, msg='Take plate off magdeck and vortex for 10 - 15 seconds.')
-
+        
         magdeck.engage(height=MAG_HEIGHT)
         for bindi in np.arange(settling_time,0,-0.5): #Settling time delay with countdown timer
             ctx.delay(minutes=0.5, msg='There are ' + str(bindi) + ' minutes left in the incubation.')
-
+        
         # remove initial supernatant
-        remove_supernatant(vol+starting_vol, park=park, spots=tips)
+        remove_supernatant(vol+starting_vol, park=park)
 
     def wash(vol, source, mix_reps=15, park=True, resuspend=True):
 
@@ -384,7 +380,6 @@ resuming.')
                 if n < num_trans - 1:  # only air_gap if going back to source
                     m300.air_gap(20)
             if resuspend:
-                #m300.mix(mix_reps, 150, loc)
                 resuspend_pellet(m, m300, 180)
 
             m300.blow_out(m.top())
@@ -451,7 +446,6 @@ resuming.')
     bind(binding_buffer_vol, park=True)
     wash(wash1_vol, wash1, park=False, resuspend=True)
     wash(wash2_vol, wash2, park=False, resuspend=True)
-    wash(wash3_vol, wash3, park=False, resuspend=True)
     drybeads = 5 #Number of minutes you want to dry for
     for beaddry in np.arange(drybeads,0,-0.5):
         ctx.delay(minutes=0.5, msg='There are ' + str(beaddry) + ' minutes left in the drying step.')
