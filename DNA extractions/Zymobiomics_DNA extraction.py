@@ -61,10 +61,10 @@ def run(ctx):
     cancellationToken = CancellationToken()
 
     [num_samples, deepwell_type, res_type, starting_vol, binding_buffer_vol,
-     wash1_vol, wash2_vol, wash3_vol, elution_vol, mix_reps, settling_time,
+     wash1_vol, wash2_vol, elution_vol, mix_reps, settling_time,
      park_tips, tip_track, flash] = get_values(  # noqa: F821
         'num_samples', 'deepwell_type', 'res_type', 'starting_vol',
-        'binding_buffer_vol', 'wash1_vol', 'wash2_vol', 'wash3_vol',
+        'binding_buffer_vol', 'wash1_vol', 'wash2_vol',
         'elution_vol', 'mix_reps', 'settling_time', 'park_tips', 'tip_track',
         'flash')
 
@@ -357,10 +357,6 @@ resuming.')
             whichwash = 1
         if source == wash2:
             whichwash = 2
-        if source == wash3:
-            whichwash = 3
-        else:
-            whichwash = whichwash+1
 
         if resuspend and magdeck.status == 'engaged':
             magdeck.disengage()
